@@ -1,0 +1,47 @@
+<!-- Popup de download de notas fiscais -->
+<po-modal
+  #downloadsModal 
+  p-title="Baixar Nota Fiscal">
+  <div 
+    class="po-row po-mb-3 po-text-center">
+    <div 
+      class="po-md-12">
+      <po-icon 
+        p-icon="po-icon-download" 
+        class="download-icon">
+      </po-icon>
+        <p 
+          class="po-text po-md-12">
+          Como você deseja baixar sua Nota Fiscal?
+        </p>
+      <small 
+        class="po-text-secondary">
+        Escolha uma das opções abaixo para continuar.
+      </small>
+    </div>
+  </div>
+
+  <po-modal-footer>
+    <po-button-group 
+      [p-buttons]="downloadButtons"
+      class="po-md-12">
+    </po-button-group>
+  </po-modal-footer>
+</po-modal>
+<!-- Pagina Principal -->
+<po-page-dynamic-search
+  p-title="Notas Fiscais"
+  (p-change-disclaimers)="onResetSearch()"
+  (p-quick-search)="onSearch($event)">
+  <po-table
+    p-container="true"
+    [p-hide-columns-manager]="true"
+    [p-sort]="true"
+    [p-striped]="true"
+    [p-columns]="invoicesColumns"
+    [p-items]="invoicesItems"
+    [p-height]="tableHeight"
+    [p-hide-text-overflow]="true"
+    [p-actions]="tableActions">
+  </po-table>
+</po-page-dynamic-search>

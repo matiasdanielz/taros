@@ -1,0 +1,409 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { PoDynamicFormField, PoTableColumn } from '@po-ui/ng-components';
+import { environment } from 'src/environments/environment';
+import { CustomersService } from '../customers/customers.service';
+import { PaymentConditionsService } from '../paymentConditions/payment-conditions.service';
+import { PriceTablesService } from '../priceTables/price-tables.service';
+import { ProductsService } from '../products/products.service';
+import { OperationsService } from '../operations/operations.service';
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SalesRequestsService {
+
+  constructor(
+    private http: HttpClient,
+    private customersService: CustomersService,
+    private paymentConditionsService: PaymentConditionsService,
+    private priceTableService: PriceTablesService,
+    private productsService: ProductsService,
+    private operationsService: OperationsService
+  ) { }
+
+  public async PostSalesRequest(body: any) {
+    const url: string = `http://200.229.234.214:8091/rest/valclei/pedidovenda`;
+  
+    try {
+      const response: any = await this.http.post(url, body, environment.header).toPromise();
+      return response;
+    } catch (error: any) {
+      const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
+  
+      return { sucesso: false, mensagem: errorMessage };
+    }
+  }
+
+
+  public async DeleteSalesRequest(body: any) {
+    const url: string = `http://200.229.234.214:8091/rest/valclei/pedidovenda`;
+  
+    const options = {
+      ...environment.header, // pega os headers do environment
+      body: body              // adiciona o body na requisição
+    };
+  
+    try {
+      const response: any = await this.http.delete(url, options).toPromise();
+      return response;
+    } catch (error: any) {
+      const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
+  
+      return { sucesso: false, mensagem: errorMessage };
+    }
+  }
+  
+  /*
+  **********
+  **********
+  CABEÇALHO
+  **********
+  **********
+  */
+  public GetSalesRequestsHeaderFields(): PoDynamicFormField[] {
+    return [
+      {
+        property: 'C5_CLIENTE',
+        label: 'Cliente',
+        divider: 'Cabeçalho',
+        searchService: this.customersService,
+        fieldValue: 'id',
+        fieldLabel: 'name',
+        columns: [
+          {
+            property: 'id',
+            label: 'Codigo'
+          },
+          {
+            property: 'name',
+            label: 'Nome'
+          }
+        ],
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C5_CONDPAG',
+        label: 'Condição De Pagamento',
+        searchService: this.paymentConditionsService,
+        columns: [
+          {
+            property: 'value',
+            label: 'Codigo'
+          },
+          {
+            property: 'label',
+            label: 'Descrição'
+          }
+        ],
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C5_EMISSAO',
+        label: 'Data Emissão',
+        type: 'date',
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C5_TABELA',
+        label: 'Tabela',
+        searchService: this.priceTableService,
+        columns: [
+          {
+            property: 'value',
+            label: 'Codigo'
+          },
+          {
+            property: 'label',
+            label: 'Descrição'
+          }
+        ],
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C5_TIPO',
+        label: 'Tipo Pedido',
+        required: true,
+        showRequired: true,
+        options: [
+          {
+            value: "N",
+            label: "Normal",
+            color: "color-01",
+          },
+          {
+            value: "D",
+            label: "Devolução de Compras (Excl. Brasil)",
+            color: "color-02"
+          },
+          {
+            value: "C",
+            label: "Complemento de Preços/Quantidades (Excl. Brasil)",
+            color: "color-03"
+          },
+          {
+            value: "P",
+            label: "Complemento de IPI (Excl. Brasil)",
+            color: "color-04"
+          },
+          {
+            value: "I",
+            label: "Complemento de ICMS (Excl. Brasil)",
+            color: "color-05"
+          },
+          {
+            value: "B",
+            label: "Apresentação Fornecedor (Material p/Benef)",
+            color: "color-06"
+          }
+        ],
+        gridColumns: 6
+      },
+      {
+        property: 'C5_TPFRETE',
+        label: 'Tipo De Frete',
+        required: true,
+        showRequired: true,
+        options: [
+          {
+            value: 'C',
+            label: 'CIF'
+          },
+          {
+            value: 'F',
+            label: 'FOB'
+          },
+          {
+            value: 'T',
+            label: 'Por Terceiros'
+          },
+          {
+            value: 'R',
+            label: 'Por Remetente'
+          },
+          {
+            value: 'D',
+            label: 'Pelo Destinatario'
+          },
+          {
+            value: 'S',
+            label: 'Sem Frete'
+          },
+        ],
+        gridColumns: 6
+      },
+      {
+        property: 'C5_MENNOTA',
+        label: 'Msg Nota',
+        gridColumns: 12,
+        rows: 3
+      },
+    ];
+  }
+
+  public GetSalesRequestsHeaderColumns(): PoTableColumn[] {
+    return [
+      {
+        property: "store",
+        label: "Loja",
+        width: "100px"
+      },
+      {
+        property: "customerCode",
+        label: "Código do Cliente",
+        width: "150px"
+      },
+      {
+        property: "customerName",
+        label: "Nome do Cliente",
+        width: "250px"
+      },
+      {
+        property: "orderType",
+        label: "Tipo de Pedido",
+        type: "label",
+        width: "150px",
+        labels: [
+          {
+            value: "N",
+            label: "Normal",
+            color: "color-01"
+          },
+          {
+            value: "D",
+            label: "Devolução de Compras (Excl. Brasil)",
+            color: "color-02"
+          },
+          {
+            value: "C",
+            label: "Complemento de Preços/Quantidades (Excl. Brasil)",
+            color: "color-03"
+          },
+          {
+            value: "P",
+            label: "Complemento de IPI (Excl. Brasil)",
+            color: "color-04"
+          },
+          {
+            value: "I",
+            label: "Complemento de ICMS (Excl. Brasil)",
+            color: "color-05"
+          },
+          {
+            value: "B",
+            label: "Apresentação Fornecedor (Material p/Benef)",
+            color: "color-06"
+          }
+        ]
+      },
+      {
+        property: "issueDate",
+        label: "Data de Emissão",
+        type: 'date',
+        width: "150px"
+      },
+
+      {
+        property: "totalValue",
+        label: "Valor Total",
+        width: "150px"
+      },
+      {
+        property: "discount",
+        label: "Desconto",
+        width: "150px"
+      },
+      {
+        property: "paymentCondition",
+        label: "Condição de Pagamento",
+        width: "200px"
+      },
+      {
+        property: "salesman",
+        label: "Vendedor",
+        width: "200px"
+      },
+      {
+        property: "shippingMethod",
+        label: "Modo de Entrega",
+        width: "200px"
+      },
+    ]
+  }
+
+  public async GetSalesRequestsItems(page?: number, pageSize?: number, filter?: string): Promise<any[]> {
+    const url: string = `${environment.apiDomain}/salesRequests?` +
+      `page=${page}` +
+      `&pageSize=${pageSize}` +
+      `&filter=${filter}`;
+
+    const response: any = await this.http.get(url, environment.header).toPromise();
+
+    return response['items'];
+  }
+
+  /*
+  **********
+  **********
+  ITENS
+  **********
+  **********
+  */
+
+  public GetSalesRequestsItemsFields(): PoDynamicFormField[]{
+    return [
+      {
+        property: 'C6_ITEM',
+        label: 'Item',
+        readonly: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C6_PRODUTO',
+        label: 'Produto',
+        searchService: this.productsService,
+        columns: [
+          {
+            property: 'value',
+            label: 'Codigo'
+          },
+          {
+            property: 'label',
+            label: 'Descrição'
+          }
+        ],
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C6_QTDVEN',
+        label: 'Qtde Vendida',
+        type: 'number',
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C6_QTDLIB',
+        label: 'Quantidade Liberada',
+        type: 'number',
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      },
+      {
+        property: 'C6_OPER',
+        label: 'Operação',
+        searchService: this.operationsService,
+        columns: [
+          {
+            property: 'value',
+            label: 'Codigo'
+          },
+          {
+            property: 'label',
+            label: 'Descrição'
+          }
+        ],
+        required: true,
+        showRequired: true,
+        gridColumns: 6
+      }
+    ];
+  }
+
+  public GetSalesRequestsItemsColumns(): PoTableColumn[]{
+    return [
+      {
+        property: 'C6_ITEM',
+        label: 'Item'
+      },
+      {
+        property: 'C6_PRODUTO',
+        label: 'Produto'
+      },
+      {
+        property: 'C6_QTDVEN',
+        label: 'Qtde Vendida'
+      },
+      {
+        property: 'C6_QTDLIB',
+        label: 'Quantidade Liberada'
+      },
+      {
+        property: 'C6_OPER',
+        label: 'Operação'
+      }
+    ];
+  }
+}

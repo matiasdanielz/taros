@@ -1,0 +1,20 @@
+<po-modal
+    #editSalesRequestModal
+    p-title="Editar Pedido De Venda"
+    class="salesRequestModal"
+    p-size="xl">
+    <po-dynamic-form
+        [p-fields]="salesRequestsFields"
+        [p-value]="salesRequestInEdit">
+    </po-dynamic-form>
+    <po-modal-footer
+        [p-disabled-align]="false">
+        <po-button
+            [p-danger]="true"
+            p-label="Cancelar"></po-button>
+        <po-button
+            p-kind="primary"
+            p-label="Confirmar">
+        </po-button>
+    </po-modal-footer>
+</po-modal>

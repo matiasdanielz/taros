@@ -1,0 +1,26 @@
+<!-- Modal De Inclusão -->
+<po-modal
+    #addSalesRequestItemModal
+    p-title="Criar Item Do Pedido De Venda"
+    p-size="xl"
+    class="createSalesRequestModal">
+    <po-dynamic-form
+        #salesRequestAddForm
+        [p-fields]="salesRequestsFields"
+        [p-value]="salesRequestValue">
+    </po-dynamic-form>
+    <po-modal-footer
+        [p-disabled-align]="false">
+        <po-button
+            [p-danger]="true"
+            p-label="Cancelar"
+            (p-click)="addSalesRequestItemModal.close()">
+        </po-button>
+        <po-button
+            p-kind="primary"
+            p-label="Confirmar"
+            (p-click)="OnCreateSalesRequestItem()"
+            [p-disabled]="salesRequestAddForm.form.invalid!">
+        </po-button>
+    </po-modal-footer>
+</po-modal>

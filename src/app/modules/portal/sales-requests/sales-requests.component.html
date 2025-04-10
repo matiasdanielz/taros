@@ -1,0 +1,31 @@
+<!-- Modal De Inclusão de cabeçalho -->
+<app-add-sales-request-header-modal
+    #addSalesRequestHeaderModal>
+</app-add-sales-request-header-modal>
+<!-- Modal De Alteração -->
+<app-edit-sales-request-modal
+    #editSalesRequestModal>
+</app-edit-sales-request-modal>
+<!-- Modal de confirmação de exclusão -->
+<app-delete-confirmation-modal
+    #deleteConfirmationModal
+    (onDelete)="DeleteItem()">
+</app-delete-confirmation-modal>
+<!-- Pagina Principal -->
+<po-page-dynamic-search
+    p-title="Pedidos De Venda"
+    [p-actions]="pageActions"
+    (p-change-disclaimers)="onResetSearch()"
+    (p-quick-search)="onSearch($event)">
+    <po-table
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-columns]="salesRequestsColumns"
+        [p-items]="salesRequestsItems"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions">
+    </po-table>
+</po-page-dynamic-search>

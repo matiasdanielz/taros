@@ -1,0 +1,10 @@
+<app-forgot-password
+    #forgotPassword>
+</app-forgot-password>
+
+<po-page-login
+    p-logo="./assets/logomarca.png"
+    [p-hide-remember-user]="true"
+    [p-recovery]="this.recoveryPassword.bind(this)"
+    (p-login-submit)="CheckLogin($event)">
+</po-page-login>

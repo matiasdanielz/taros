@@ -1,0 +1,35 @@
+<po-modal
+    #DeleteConfirmationModal
+    p-title="Confirmar Exclusão">
+    <div
+        class="po-row po-mb-3 po-text-center">
+        <div
+            class="po-md-12">
+            <po-icon
+                p-icon="po-icon-delete"
+                class="delete-icon po-text-danger">
+            </po-icon>
+            <p
+                class="po-text po-md-12">
+                Tem certeza que deseja excluir este item?
+            </p>
+            <small
+                class="po-text-secondary">
+                Essa ação não poderá ser desfeita.
+            </small>
+        </div>
+    </div>
+
+    <po-modal-footer>
+        <po-button
+            p-label="Cancelar"
+            p-type="default"
+            (p-click)="DeleteConfirmationModal.close()">
+        </po-button>
+        <po-button
+            p-label="Excluir"
+            p-type="danger"
+            (p-click)="ConfirmDelete()">
+        </po-button>
+    </po-modal-footer>
+</po-modal>

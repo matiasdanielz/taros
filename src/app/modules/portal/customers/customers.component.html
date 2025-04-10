@@ -1,0 +1,17 @@
+
+<!-- Pagina Principal -->
+<po-page-dynamic-search
+    p-title="Clientes"
+    (p-change-disclaimers)="onResetSearch()"
+    (p-quick-search)="onSearch($event)">
+    <po-table
+        p-container="true"
+        [p-hide-columns-manager]="true" 
+        [p-sort]="true" 
+        [p-striped]="true"
+        [p-columns]="customersColumns"
+        [p-items]="customersItems"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true">
+    </po-table>
+</po-page-dynamic-search >

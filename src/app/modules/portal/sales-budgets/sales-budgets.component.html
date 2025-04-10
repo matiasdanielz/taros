@@ -1,0 +1,14 @@
+<!-- Pagina Principal -->
+<po-page-dynamic-search
+  p-title="Orçamentos De Venda">
+  <po-table
+    p-container="true"
+    [p-hide-columns-manager]="true"
+    [p-sort]="true"
+    [p-striped]="true"
+    [p-columns]="salesBudgetsColumns"
+    [p-items]="salesBudgetsItems"
+    [p-height]="tableHeight"
+    [p-hide-text-overflow]="true">
+  </po-table>
+</po-page-dynamic-search>

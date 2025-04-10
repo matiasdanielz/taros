@@ -1,0 +1,22 @@
+<po-page-default
+    p-title="Comissões"
+    class="po-md-12">
+    <po-table
+        class="po=md-12"
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-columns]="commissionsColumns"
+        [p-items]="commissionsItems"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true">
+    </po-table>
+    <po-chart
+        class="po-md-12 po-mt-3"
+        [p-categories]="commissionsCategories"
+        [p-series]="commissionsSeries"
+        [p-type]="commissionsType">
+    </po-chart>
+
+</po-page-default>

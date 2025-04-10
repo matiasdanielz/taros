@@ -1,0 +1,57 @@
+
+<!-- Modal De Inclusão De Cabeçalho -->
+<po-modal
+    #addSalesRequestHeaderModal
+    p-title="Criar Pedido De Venda"
+    p-size="xl"
+    class="salesRequestModal">
+    <po-dynamic-form
+        #addSalesRequestHeaderForm
+        [p-fields]="salesRequestFields"
+        [p-value]="salesRequestValue">
+    </po-dynamic-form>
+    <po-divider
+        class="po-md-12"
+        p-label="Itens">
+    </po-divider>
+    <po-button
+        class="po-md-4 po-mb-3"
+        p-label="Adicionar"
+        p-kind="primary"
+        (p-click)="openItemModal()">
+    </po-button>
+    <po-table
+        #addSalesRequestItemsTable
+        class="po-md-12"
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions"
+        [p-columns]="tableColumns"
+        [p-items]="tableItems">
+    </po-table>
+    <po-modal-footer
+        [p-disabled-align]="false">
+        <po-button
+            [p-danger]="true"
+            p-label="Cancelar"
+            (p-click)="addSalesRequestHeaderModal.close()">
+        </po-button>
+        <po-button
+            #createSalesRequestButton
+            p-kind="primary"
+            p-label="Confirmar"
+            (p-click)="createSalesRequest()"
+            [p-disabled]="isCreateButtonDisabled()">
+        </po-button>
+    </po-modal-footer>
+</po-modal>
+
+<!-- Modal De Inclusão de itens -->
+<app-add-sales-request-item-modal
+  #addSalesRequestItemModal
+  (itemCreated)="onSalesRequestItemCreated($event)">
+</app-add-sales-request-item-modal>
