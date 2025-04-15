@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { PoTableColumn } from '@po-ui/ng-components';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { SalesBudgetsService } from './sales-budgets.service';
 
 @Component({
@@ -7,7 +7,16 @@ import { SalesBudgetsService } from './sales-budgets.service';
   templateUrl: './sales-budgets.component.html',
   styleUrls: ['./sales-budgets.component.css']
 })
-export class SalesBudgetsComponent {
+export class SalesBudgetsComponent implements OnInit{
+  @ViewChild('addSalesBudgetHeaderModal', {static: true}) addSalesBudgetHeaderModal: any;
+
+  //Parametros da pagina
+  protected pageActions: PoTableAction[] = [
+    {
+      label: 'Adicionar',
+      action: () => this.addSalesBudgetHeaderModal.open()
+    },
+  ];
 
   protected tableHeight: number = window.innerHeight / 1.5;
   protected salesBudgetsColumns: PoTableColumn[] = [];
@@ -17,6 +26,8 @@ export class SalesBudgetsComponent {
     private salesBudgetService: SalesBudgetsService
   ){
     this.salesBudgetsColumns = salesBudgetService.GetSalesBudgetsColumns();
-    this.salesBudgetsItems = salesBudgetService.GetSalesBudgetsItems();
+  }
+  async ngOnInit(): Promise<void> {
+    this.salesBudgetsItems = await this.salesBudgetService.GetSalesBudgetsItems();
   }
 }

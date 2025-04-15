@@ -17,6 +17,10 @@ import { EditSalesRequestModalComponent } from './sales-requests/modals/edit-sal
 import { GenericComponentsModule } from '../../genericComponents/generic-components.module';
 import { SalesBudgetsComponent } from './sales-budgets/sales-budgets.component';
 import { ImportsComponent } from './imports/imports.component';
+import { EditSalesRequestItemModalComponent } from './sales-requests/modals/edit-sales-request-item-modal/edit-sales-request-item-modal.component';
+import { AddSalesBudgetHeaderModalComponent } from './sales-budgets/modals/add-sales-budget-header-modal/add-sales-budget-header-modal.component';
+import { AddSalesBudgetItemModalComponent } from './sales-budgets/modals/add-sales-budget-item-modal/add-sales-budget-item-modal.component';
+import { ResultOfTaxesComponent } from './sales-requests/modals/result-of-taxes/result-of-taxes.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +36,11 @@ import { ImportsComponent } from './imports/imports.component';
     AddSalesRequestItemModalComponent,
     EditSalesRequestModalComponent,
     SalesBudgetsComponent,
-    ImportsComponent
+    ImportsComponent,
+    EditSalesRequestItemModalComponent,
+    AddSalesBudgetHeaderModalComponent,
+    AddSalesBudgetItemModalComponent,
+    ResultOfTaxesComponent
   ],
   imports: [
     CommonModule,

@@ -26,16 +26,20 @@ export class CommissionsService {
           label: 'Id Venda'
         },
         {
-          property: 'emissionDate',
-          label: 'Dta Emissão'
-        },
-        {
           property: 'serial',
           label: 'Serie'
         },
         {
+          property: 'parcel',
+          label: 'Parcela'
+        },
+        {
+          property: 'emissionDate',
+          label: 'Dta Emissão'
+        },
+        {
           property: 'customer',
-          label: 'Cliete'
+          label: 'Cliente'
         },
         {
           property: 'sales',

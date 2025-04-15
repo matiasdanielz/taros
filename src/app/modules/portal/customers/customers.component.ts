@@ -35,7 +35,7 @@ export class CustomersComponent implements OnInit {
   }
 
   protected async LoadCustomers(){
-    this.customersItems = await this.customersService.GetCustomersItems(this.page, this.pageSize, this.filter);
+    this.customersItems = await this.customersService.GetCustomersItems(this.filter);
   }
 
   protected onSearch(filter: string): any {

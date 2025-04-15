@@ -16,6 +16,9 @@ class TarosModel from longclassname
     method GetProducts()
     method GetOperations()
     method GetSalesman()
+    method GetSalesBudgets()
+    method GetImports()
+    method PostPasswordRecovery()
 endclass
 
 method New() class TarosModel
@@ -49,17 +52,12 @@ method Login(cUserName, cPassword) class TarosModel
 
     return oResponse
 
-method GetCustomers(nPage, nPageSize, cFilter) class TarosModel
+method GetCustomers(cSalesmanId, cFilter) class TarosModel
     local oCustomer   := JsonObject():New()
     local aCustomers  := {}
-    Local nOffset     := 0
     local oResponse   := JsonObject():New()
 
-    Default nPage     := 0
-	Default nPageSize := 10
 	Default cFilter   := ''
-
-    nOffset := nPageSize * nPage
 
     BeginSql Alias "SQL_CUSTOMERS"
         SELECT
@@ -78,36 +76,64 @@ method GetCustomers(nPage, nPageSize, cFilter) class TarosModel
             A1_CEP AS CEP,
             A1_TEL AS TELEFONE,
             A1_EMAIL AS EMAIL,
+            E4_DESCRI AS CONDPAG,
+            DA0_DESCRI AS TABELA,
+            A1_MSBLQL AS STATUS,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SA1% SA1
+        LEFT JOIN
+            %Table:SE4% SE4 ON SE4.E4_CODIGO = A1_COND AND SE4.D_E_L_E_T_ = ''
+        LEFT JOIN    
+            %Table:DA0% DA0 ON DA0.DA0_CODTAB = A1_TABELA AND DA0.D_E_L_E_T_ = ''
         WHERE
-            (UPPER(A1_COD) LIKE UPPER('%' + %Exp:cFilter% + '%')
-            OR UPPER(A1_NOME) LIKE UPPER('%' + %Exp:cFilter% + '%')
-            OR UPPER(A1_CGC) LIKE UPPER('%' + %Exp:cFilter% + '%'))
+            (
+                UPPER(A1_COD) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_LOJA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_NOME) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_NREDUZ) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_TIPO) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_PESSOA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_CGC) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_INSCR) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_END) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_BAIRRO) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_MUN) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_EST) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_CEP) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_TEL) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_COND) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_TABELA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_EMAIL) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_MSBLQL) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
+        AND
+            A1_VEND = %Exp:cSalesmanId%
         AND 
-            D_E_L_E_T_ = ''
+            SA1.D_E_L_E_T_ = ''
     EndSql
 
     oResponse['total'] := SQL_CUSTOMERS->TOTAL
-	oResponse['hasNext'] := SQL_CUSTOMERS->TOTAL > (nPage + 1) * nPageSize
 
     While !SQL_CUSTOMERS->(EoF())
-        oCustomer[ 'id' ] := ALLTRIM(SQL_CUSTOMERS->CODIGO)
-        oCustomer[ 'store' ] := ALLTRIM(SQL_CUSTOMERS->LOJA)
-        oCustomer[ 'name' ] := ALLTRIM(SQL_CUSTOMERS->NOME)
-        oCustomer[ 'fantasyName' ] := ALLTRIM(SQL_CUSTOMERS->NOME_REDUZIDO)
-        oCustomer[ 'type' ] := ALLTRIM(SQL_CUSTOMERS->TIPO_CLIENTE)
-        oCustomer[ 'person' ] := ALLTRIM(SQL_CUSTOMERS->PESSOA)
-        oCustomer[ 'brazilianTaxId' ] := ALLTRIM(SQL_CUSTOMERS->CNPJ_CPF)
+        oCustomer[ 'id' ]               := ALLTRIM(SQL_CUSTOMERS->CODIGO)
+        oCustomer[ 'store' ]            := ALLTRIM(SQL_CUSTOMERS->LOJA)
+        oCustomer[ 'name' ]             := ALLTRIM(SQL_CUSTOMERS->NOME)
+        oCustomer[ 'fantasyName' ]      := ALLTRIM(SQL_CUSTOMERS->NOME_REDUZIDO)
+        oCustomer[ 'type' ]             := ALLTRIM(SQL_CUSTOMERS->TIPO_CLIENTE)
+        oCustomer[ 'person' ]           := ALLTRIM(SQL_CUSTOMERS->PESSOA)
+        oCustomer[ 'brazilianTaxId' ]   := ALLTRIM(SQL_CUSTOMERS->CNPJ_CPF)
         oCustomer[ 'stateInscription' ] := ALLTRIM(SQL_CUSTOMERS->INSCRICAO_ESTADUAL)
-        oCustomer[ 'adress' ] := ALLTRIM(SQL_CUSTOMERS->ENDERECO)
-        oCustomer[ 'neighborhood' ] := ALLTRIM(SQL_CUSTOMERS->BAIRRO)
-        oCustomer[ 'city' ] := ALLTRIM(SQL_CUSTOMERS->CIDADE)
-        oCustomer[ 'state' ] := ALLTRIM(SQL_CUSTOMERS->ESTADO)
-        oCustomer[ 'zip' ] := ALLTRIM(SQL_CUSTOMERS->CEP)
-        oCustomer[ 'phone' ] := ALLTRIM(SQL_CUSTOMERS->TELEFONE)
-        oCustomer[ 'email' ] := ALLTRIM(SQL_CUSTOMERS->EMAIL)
+        oCustomer[ 'adress' ]           := ALLTRIM(SQL_CUSTOMERS->ENDERECO)
+        oCustomer[ 'neighborhood' ]     := ALLTRIM(SQL_CUSTOMERS->BAIRRO)
+        oCustomer[ 'city' ]             := ALLTRIM(SQL_CUSTOMERS->CIDADE)
+        oCustomer[ 'state' ]            := ALLTRIM(SQL_CUSTOMERS->ESTADO)
+        oCustomer[ 'zip' ]              := ALLTRIM(SQL_CUSTOMERS->CEP)
+        oCustomer[ 'phone' ]            := ALLTRIM(SQL_CUSTOMERS->TELEFONE)
+        oCustomer[ 'email' ]            := ALLTRIM(SQL_CUSTOMERS->EMAIL)
+        oCustomer[ 'paymentCondition' ] := ALLTRIM(SQL_CUSTOMERS->CONDPAG)
+        oCustomer[ 'priceTable' ]       := ALLTRIM(SQL_CUSTOMERS->TABELA)
+        oCustomer[ 'status' ]           := ALLTRIM(SQL_CUSTOMERS->STATUS)
 
         aadd(aCustomers, oCustomer)
         oCustomer := JsonObject():New()
@@ -136,14 +162,27 @@ method GetInvoices(nPage, nPageSize, cFilter) class TarosModel
         SELECT
             F2_DOC AS CODIGO,
             F2_SERIE SERIE,
+            A1_LOJA AS LOJA_CLIENTE,
+            A1_COD AS ID_CLIENTE,
             A1_NOME AS CLIENTE,
             F2_LOJA AS LOJA,
-            F2_EMISSAO AS DATAEMISSAO,
-            F2_VALBRUT AS VALORTOTAL,
-            E4_DESCRI AS CONDPAGAMENTO,
-            F2_DESCONT AS DESCONTO,
-            F2_VEND1 AS VENDEDOR,
-            F2_ESPECIE AS TIPODOCUMENTO,
+            F2_EMISSAO AS DATA_EMISSAO,
+            F2_VALBRUT AS VALOR_TOTAL,
+            F2_BASEICM AS BASE_ICMS,
+            F2_VALICM AS VALOR_ICMS,
+            F2_BASEIPI AS BASE_IPI,
+            F2_VALIPI AS VALOR_IPI,
+            F2_VALMERC AS VALOR_MERCADO,
+            F2_ICMSRET AS ICMS_RETIDO,
+            F2_PLIQUI AS PESO_LIQUIDO,
+            F2_PBRUTO AS PESO_BRUTO,
+            F2_TRANSP AS TRANSPORTADORA,
+            F2_BASIMP5 AS BASE_IMP_5,
+            F2_VALIMP5 AS VALOR_IMP_5,
+            F2_VALIMP6 AS VALOR_IMP_6,
+            F2_VALIMP6 AS VALOR_IMP_6,
+            F2_DAUTNFE AS DATA_AUT_NF,
+            F2_HAUTNFE AS HORA_AUT_NF,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SF2% SF2
@@ -161,22 +200,27 @@ method GetInvoices(nPage, nPageSize, cFilter) class TarosModel
     oResponse['hasNext'] := SQL_INVOICES->TOTAL > (nPage + 1) * nPageSize
 
     While !SQL_INVOICES->(EoF())
-        oInvoice[ 'id' ]               := ALLTRIM(SQL_INVOICES->CODIGO)
-        oInvoice[ 'serial' ]           := ALLTRIM(SQL_INVOICES->SERIE)
-        oInvoice[ 'client' ]           := ALLTRIM(SQL_INVOICES->CLIENTE)
-        oInvoice[ 'store' ]            := ALLTRIM(SQL_INVOICES->LOJA)
-        oInvoice[ 'issueDate' ]        := IIF(EMPTY(SQL_INVOICES->DATAEMISSAO), '' , cvaltochar(year2Str(stod(SQL_INVOICES->DATAEMISSAO))) + "-" + cvaltochar(Month2Str(stod(SQL_INVOICES->DATAEMISSAO))) + '-' + cvaltochar(Day2Str(stod(SQL_INVOICES->DATAEMISSAO))))
-        //oInvoice[ 'dueDate' ]          := ALLTRIM(SQL_INVOICES->DATAVENCIMENTO)
-        oInvoice[ 'totalValue' ]       := SQL_INVOICES->VALORTOTAL
-        //oInvoice['status'] := ALLTRIM(SQL_INVOICES->STATUS)
-        oInvoice[ 'paymentCondition' ] := ALLTRIM(SQL_INVOICES->CONDPAGAMENTO)
-        oInvoice[ 'discount' ]         := SQL_INVOICES->DESCONTO
-        oInvoice[ 'salesperson' ]      := ALLTRIM(SQL_INVOICES->VENDEDOR)
-        //;oInvoice['salesCommission'] := SQL_INVOICES->COMISSAOVENDEDOR
-        //oInvoice[ 'orderNumber' ]      := ALLTRIM(SQL_INVOICES->NUMEROPEDIDO)
-        oInvoice[ 'documentType' ]     := ALLTRIM(SQL_INVOICES->TIPODOCUMENTO)
-        //oInvoice['nfNumber'] := ALLTRIM(SQL_INVOICES->NOTAFISCAL)
-        //oInvoice['cfop'] := ALLTRIM(SQL_INVOICES->CFOP)
+        oInvoice[ 'id' ]             := ALLTRIM(SQL_INVOICES->CODIGO)
+        oInvoice[ 'serial' ]         := ALLTRIM(SQL_INVOICES->SERIE)
+        oInvoice[ 'customerStore' ]  := ALLTRIM(SQL_INVOICES->LOJA_CLIENTE)
+        oInvoice[ 'customerId' ]     := ALLTRIM(SQL_INVOICES->ID_CLIENTE)
+        oInvoice[ 'customerName' ]   := ALLTRIM(SQL_INVOICES->CLIENTE)
+        oInvoice[ 'issueDate' ]      := IIF(EMPTY(SQL_INVOICES->DATA_EMISSAO), '' , cvaltochar(year2Str(stod(SQL_INVOICES->DATA_EMISSAO))) + "-" + cvaltochar(Month2Str(stod(SQL_INVOICES->DATA_EMISSAO))) + '-' + cvaltochar(Day2Str(stod(SQL_INVOICES->DATA_EMISSAO))))
+        oInvoice[ 'totalAmount' ]    := SQL_INVOICES->VALOR_TOTAL // Valor total da nota
+        oInvoice[ 'icmsBase' ]       := SQL_INVOICES->BASE_ICMS // Base de cálculo do ICMS
+        oInvoice[ 'icmsValue' ]      := SQL_INVOICES->VALOR_ICMS // Valor do ICMS
+        oInvoice[ 'ipiBase' ]        := SQL_INVOICES->BASE_IPI // Base de cálculo do IPI
+        oInvoice[ 'ipiValue' ]       := SQL_INVOICES->VALOR_IPI // Valor do IPI
+        oInvoice[ 'goodsValue' ]     := SQL_INVOICES->VALOR_MERCADO // Valor das mercadorias
+        oInvoice[ 'icmsRetained' ]   := SQL_INVOICES->ICMS_RETIDO // ICMS Retido
+        oInvoice[ 'netWeight' ]      := SQL_INVOICES->PESO_LIQUIDO // Peso líquido
+        oInvoice[ 'grossWeight' ]    := SQL_INVOICES->PESO_BRUTO // Peso bruto
+        oInvoice[ 'carrier' ]        := SQL_INVOICES->TRANSPORTADORA // Transportadora
+        oInvoice[ 'otherTaxBase' ]   := SQL_INVOICES->BASE_IMP_5 // Base de outro imposto (ex: ISS ou outro customizado)
+        oInvoice[ 'otherTaxValue1' ] := SQL_INVOICES->VALOR_IMP_5 // Valor do outro imposto 1
+        oInvoice[ 'otherTaxValue2' ] := SQL_INVOICES->VALOR_IMP_6 // Valor do outro imposto 2
+        oInvoice[ 'nfApprovalDate' ] := IIF(EMPTY(SQL_INVOICES->DATA_AUT_NF), '' , cvaltochar(year2Str(stod(SQL_INVOICES->DATA_AUT_NF))) + "-" + cvaltochar(Month2Str(stod(SQL_INVOICES->DATA_AUT_NF))) + '-' + cvaltochar(Day2Str(stod(SQL_INVOICES->DATA_AUT_NF)))) // Data de autorização da NF
+        oInvoice[ 'nfApprovalTime' ] := SQL_INVOICES->HORA_AUT_NF // Hora de autorização da NF
 
         aadd(aInvoices, oInvoice)
         oInvoice := JsonObject():New()
@@ -209,12 +253,63 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
             C5_CLIENTE      AS CODIGO_CLIENTE,
             A1_NOME         AS NOME_CLIENTE,
             C5_LOJACLI      AS LOJA,
-            C5_TIPO         AS TIPO_PEDIDO,
             C5_EMISSAO      AS DATA_EMISSAO,
             E4_DESCRI       AS CONDICAO_PAGAMENTO,
-            C5_VEND1        AS VENDEDOR,
             A4_NOME         AS TRANSPORTADORA,
             C5_DESCONT      AS DESCONTO,
+            CASE
+                WHEN (
+                    C5_LIBEROK = ''
+                    AND C5_NOTA = ''
+                    AND C5_BLQ = ''
+                ) THEN 'emAberto'
+                WHEN (
+                    C5_NOTA <> ''
+                    OR C5_LIBEROK = 'E'
+                    AND C5_BLQ = ''
+                ) THEN 'encerrado'
+                WHEN (
+                    C5_NOTA = ''
+                    AND C5_LIBEROK <> ''
+                    AND C5_BLQ = ''
+                ) THEN 'liberado'
+                WHEN (
+                    C5_BLQ = '1'
+                ) THEN 'bloqueadoPorRegra'
+                WHEN (
+                    C5_BLQ = '2'
+                ) THEN 'bloqueadoPorVerba'
+                WHEN EXISTS (
+                    SELECT * 
+                    FROM 
+                        %Table:SC9% SC9 
+                    WHERE 
+                        SC9.D_E_L_E_T_ <> '*' 
+                    AND 
+                        C9_FILIAL = %xFilial:SC9% 
+                    AND 
+                        C9_PEDIDO = SC5.C5_NUM 
+                    AND 
+                        C9_BLEST <> '' 
+                ) THEN 'bloqueadoPorEstoque'
+                WHEN EXISTS (
+                    SELECT * 
+                    FROM 
+                        %Table:SC9% SC9 
+                    WHERE 
+                        SC9.D_E_L_E_T_ <> '*' 
+                    AND 
+                        C9_FILIAL = %xFilial:SC9% 
+                    AND 
+                        C9_PEDIDO = SC5.C5_NUM 
+                    AND 
+                        C9_BLCRED <> ''
+                ) THEN 'bloqueadoPorCredito'
+                ELSE 'naoIdentificado'
+            END AS STATUS,
+            C5_TRANSP AS TRANSPORTADORA,
+            C5_TPFRETE AS TIPO_FRETE,
+            C5_TABELA AS TABELA_PRECO,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SC5% SC5
@@ -225,9 +320,17 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
         LEFT JOIN
             %Table:SA4% SA4 ON A4_COD = C5_TRANSP AND SA4.D_E_L_E_T_ = ''
         WHERE
-            UPPER(C5_NUM) LIKE UPPER('%' + %Exp:cFilter% + '%')
+            (
+                UPPER(C5_NUM) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(C5_FILIAL) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(C5_CLIENTE) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_NOME) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(C5_LOJACLI) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(E4_DESCRI) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A4_NOME) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
         AND 
-           SC5.D_E_L_E_T_ = ''
+            SC5.D_E_L_E_T_ = ''
     EndSql
 
     oResponse['total'] := SQL_SALES_REQUESTS->TOTAL
@@ -239,15 +342,13 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
         oSalesRequest[ 'customerCode' ]     := ALLTRIM(SQL_SALES_REQUESTS->CODIGO_CLIENTE)
         oSalesRequest[ 'store' ]            := ALLTRIM(SQL_SALES_REQUESTS->LOJA)
         oSalesRequest[ 'customerName' ]     := ALLTRIM(SQL_SALES_REQUESTS->NOME_CLIENTE)
-        oSalesRequest[ 'orderType' ]        := ALLTRIM(SQL_SALES_REQUESTS->TIPO_PEDIDO)
         oSalesRequest[ 'issueDate' ]        := IIF(EMPTY(SQL_SALES_REQUESTS->DATA_EMISSAO), '', cvaltochar(year2Str(stod(SQL_SALES_REQUESTS->DATA_EMISSAO))) + "-" + cvaltochar(Month2Str(stod(SQL_SALES_REQUESTS->DATA_EMISSAO))) + '-' + cvaltochar(Day2Str(stod(SQL_SALES_REQUESTS->DATA_EMISSAO))))
         oSalesRequest[ 'paymentCondition' ] := ALLTRIM(SQL_SALES_REQUESTS->CONDICAO_PAGAMENTO)
-        oSalesRequest[ 'salesman' ]         := ALLTRIM(SQL_SALES_REQUESTS->VENDEDOR)
-        oSalesRequest[ 'shippingName' ]     := ALLTRIM(SQL_SALES_REQUESTS->TRANSPORTADORA)
-        //oSalesRequest['totalValue'] := SQL_SALES_REQUESTS->VALOR_TOTAL
+        oSalesRequest[ 'carrier' ]          := ALLTRIM(SQL_SALES_REQUESTS->TRANSPORTADORA)
+        oSalesRequest[ 'shippingMethod' ]   := ALLTRIM(SQL_SALES_REQUESTS->TIPO_FRETE)
         oSalesRequest[ 'discount' ]         := SQL_SALES_REQUESTS->DESCONTO
-        //oSalesRequest['cfop'] := ALLTRIM(SQL_SALES_REQUESTS->CFOP)
-        //oSalesRequest['orderObservation'] := ALLTRIM(SQL_SALES_REQUESTS->OBSERVACAO_PEDIDO)
+        oSalesRequest[ 'priceTable' ]       := SQL_SALES_REQUESTS->TABELA_PRECO
+        oSalesRequest[ 'status' ]           := Alltrim(SQL_SALES_REQUESTS->STATUS)
 
         aadd(aSalesRequests, oSalesRequest)
         oSalesRequest := JsonObject():New()
@@ -263,7 +364,7 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
 method GetCommissions(cSalesmanId) class TarosModel
     local oCommission  := JsonObject():New()
     local aCommissions := {}
-    local oResponse      := JsonObject():New()
+    local oResponse    := JsonObject():New()
 
     BeginSql Alias "SQL_COMMISSIONS"
         SELECT
@@ -275,6 +376,13 @@ method GetCommissions(cSalesmanId) class TarosModel
             E3_BASE AS BASE,
             E3_PORC AS PORCENTAGEM,
             E3_COMIS AS COMISSAO,
+            E3_PARCELA AS PARCELA,
+            E3_TIPO AS TIPO,
+            E3_SERIE AS SERIE,
+            E3_LOJA AS LOJA,
+            E3_BAIEMI AS BAIXA_EMISSAO,
+            E3_PEDIDO AS PEDIDO,
+            E3_VENCTO AS VENCIMENTO,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SE3% SE3
@@ -286,13 +394,29 @@ method GetCommissions(cSalesmanId) class TarosModel
     //oResponse['hasNext'] := SQL_COMMISSIONS->TOTAL > (nPage + 1) * nPageSize
 
     While !SQL_COMMISSIONS->(EoF())
-        oCommission[ 'branch' ]          := ALLTRIM(SQL_COMMISSIONS->FILIAL)
-        oCommission[ 'id' ]              := ALLTRIM(SQL_COMMISSIONS->ID)
-        oCommission[ 'emissionDate' ]    := IIF(EMPTY(SQL_COMMISSIONS->EMISSAO), '' , cvaltochar(year2Str(stod(SQL_COMMISSIONS->EMISSAO))) + "-" + cvaltochar(Month2Str(stod(SQL_COMMISSIONS->EMISSAO))) + '-' + cvaltochar(Day2Str(stod(SQL_COMMISSIONS->EMISSAO))))
-        oCommission[ 'serial' ]          := ALLTRIM(SQL_COMMISSIONS->SERIE)
-        oCommission[ 'customer' ]        := ALLTRIM(SQL_COMMISSIONS->CLIENTE)
-        oCommission[ 'sales' ]           := ALLTRIM(SQL_COMMISSIONS->BASE)
-        oCommission[ 'commissionValue' ] := ALLTRIM(SQL_COMMISSIONS->COMISSAO)
+            oCommission[ 'branch' ]          := ALLTRIM(SQL_COMMISSIONS->FILIAL)
+            oCommission[ 'id' ]              := ALLTRIM(SQL_COMMISSIONS->ID)
+            oCommission[ 'emissionDate' ]    := IIF(EMPTY(SQL_COMMISSIONS->EMISSAO), '' , ;
+                                                    cvaltochar(year2Str(stod(SQL_COMMISSIONS->EMISSAO))) + "-" + ;
+                                                    cvaltochar(Month2Str(stod(SQL_COMMISSIONS->EMISSAO))) + "-" + ;
+                                                    cvaltochar(Day2Str(stod(SQL_COMMISSIONS->EMISSAO))))
+            oCommission[ 'serial' ]          := ALLTRIM(SQL_COMMISSIONS->SERIE)
+            oCommission[ 'customer' ]        := ALLTRIM(SQL_COMMISSIONS->CLIENTE)
+            oCommission[ 'salesBase' ]       := ALLTRIM(SQL_COMMISSIONS->BASE)
+            oCommission[ 'percentage' ]      := ALLTRIM(SQL_COMMISSIONS->PORCENTAGEM)
+            oCommission[ 'commissionValue' ] := ALLTRIM(SQL_COMMISSIONS->COMISSAO)
+            oCommission[ 'installment' ]     := ALLTRIM(SQL_COMMISSIONS->PARCELA)
+            oCommission[ 'type' ]            := ALLTRIM(SQL_COMMISSIONS->TIPO)
+            oCommission[ 'store' ]           := ALLTRIM(SQL_COMMISSIONS->LOJA)
+            oCommission[ 'issueClearance' ]  := IIF(EMPTY(SQL_COMMISSIONS->BAIXA_EMISSAO), '' , ;
+                                                    cvaltochar(year2Str(stod(SQL_COMMISSIONS->BAIXA_EMISSAO))) + "-" + ;
+                                                    cvaltochar(Month2Str(stod(SQL_COMMISSIONS->BAIXA_EMISSAO))) + "-" + ;
+                                                    cvaltochar(Day2Str(stod(SQL_COMMISSIONS->BAIXA_EMISSAO))))
+            oCommission[ 'order' ]           := ALLTRIM(SQL_COMMISSIONS->PEDIDO)
+            oCommission[ 'dueDate' ]         := IIF(EMPTY(SQL_COMMISSIONS->VENCIMENTO), '' , ;
+                                                    cvaltochar(year2Str(stod(SQL_COMMISSIONS->VENCIMENTO))) + "-" + ;
+                                                    cvaltochar(Month2Str(stod(SQL_COMMISSIONS->VENCIMENTO))) + "-" + ;
+                                                    cvaltochar(Day2Str(stod(SQL_COMMISSIONS->VENCIMENTO))))
 
         aadd(aCommissions, oCommission)
         oCommission := JsonObject():New()
@@ -308,8 +432,8 @@ method GetCommissions(cSalesmanId) class TarosModel
 
 method GetPayConditions(cId, cFilter) class TarosModel
     local oPayCondition  := JsonObject():New()
-    local aPayConditions  := {}
-    local oResponse := JsonObject():New()
+    local aPayConditions := {}
+    local oResponse      := JsonObject():New()
 
     if cId == nil
         cId := ""
@@ -332,7 +456,10 @@ method GetPayConditions(cId, cFilter) class TarosModel
             OR E4_CODIGO = %Exp:cId%
         )        
         AND
-            (%Exp:cFilter% = '' OR UPPER(E4_DESCRI) LIKE UPPER(%Exp:cFilter% + '%'))
+            (
+                UPPER(E4_CODIGO) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(E4_DESCRI) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
     EndSql
 
     While !SQL_SE4->(EoF())
@@ -352,8 +479,8 @@ method GetPayConditions(cId, cFilter) class TarosModel
 
 method GetPriceTables(cId, cFilter) class TarosModel
     local oPriceTable  := JsonObject():New()
-    local aPriceTables  := {}
-    local oResponse := JsonObject():New()
+    local aPriceTables := {}
+    local oResponse    := JsonObject():New()
 
     if cId == nil
         cId := ""
@@ -376,7 +503,10 @@ method GetPriceTables(cId, cFilter) class TarosModel
             OR DA0_CODTAB = %Exp:cId%
         )        
         AND
-            (%Exp:cFilter% = '' OR UPPER(DA0_DESCRI) LIKE UPPER(%Exp:cFilter% + '%'))
+            (
+                UPPER(DA0_CODTAB) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(DA0_DESCRI) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
     EndSql
 
     While !SQL_DA0->(EoF())
@@ -397,7 +527,7 @@ method GetPriceTables(cId, cFilter) class TarosModel
 
 method GetProducts(cId, cFilter) class TarosModel
     local oProduct  := JsonObject():New()
-    local aProducts  := {}
+    local aProducts := {}
     local oResponse := JsonObject():New()
 
     if cId == nil
@@ -416,12 +546,17 @@ method GetProducts(cId, cFilter) class TarosModel
             %Table:SB1% SB1
         WHERE
             D_E_L_E_T_ = ''
-        AND (
-            %Exp:cId% = ''
-            OR B1_COD = %Exp:cId%
-        )        
-        AND
-            (%Exp:cFilter% = '' OR UPPER(B1_DESC) LIKE UPPER(%Exp:cFilter% + '%'))
+            AND (
+                %Exp:cId% = ''
+                OR B1_COD = %Exp:cId%
+            )        
+            AND (
+                %Exp:cFilter% = '' 
+                OR (
+                    UPPER(B1_DESC) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                    UPPER(B1_COD) LIKE UPPER('%' || %Exp:cFilter% || '%')
+                )
+            )
     EndSql
 
     While !SQL_SB1->(EoF())
@@ -442,8 +577,8 @@ method GetProducts(cId, cFilter) class TarosModel
 
 method GetOperations(cId, cFilter) class TarosModel
     local oOperation  := JsonObject():New()
-    local aOperations  := {}
-    local oResponse := JsonObject():New()
+    local aOperations := {}
+    local oResponse   := JsonObject():New()
 
     if cId == nil
         cId := ""
@@ -466,7 +601,10 @@ method GetOperations(cId, cFilter) class TarosModel
             OR X5_CHAVE = %Exp:cId%
         )        
         AND
-            (%Exp:cFilter% = '' OR UPPER(X5_DESCRI) LIKE UPPER(%Exp:cFilter% + '%'))
+            (
+                UPPER(X5_CHAVE) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(X5_DESCRI) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
     EndSql
 
     While !SQL_SX5->(EoF())
@@ -508,17 +646,17 @@ method GetSalesman(cSalesmanId) class TarosModel
     EndSql
 
     If !SQL_SALESMAN->(EoF())
-        oSalesmanInfo['nome']      := Alltrim(SA3->A3_NOME)
-        oSalesmanInfo['codigo']    := Alltrim(SA3->A3_COD)
-        oSalesmanInfo['cpf']       := Alltrim(SA3->A3_CGC)
-        oSalesmanInfo['email']     := Alltrim(SA3->A3_EMAIL)
-        oSalesmanInfo['telefone']  := Alltrim(SA3->A3_TEL)
-        oSalesmanInfo['celular']   := Alltrim(SA3->A3_CEL)
-        oSalesmanInfo['endereco']  := Alltrim(SA3->A3_END)
-        oSalesmanInfo['municipio'] := Alltrim(SA3->A3_MUN)
-        oSalesmanInfo['estado']    := Alltrim(SA3->A3_EST)
-        oSalesmanInfo['cep']       := Alltrim(SA3->A3_CEP)
-        oSalesmanInfo['comissao']  := Alltrim(SA3->A3_COMIS)
+        oSalesmanInfo[ 'name' ]           := Alltrim(SQL_SALESMAN->NOME)
+        oSalesmanInfo[ 'code' ]           := Alltrim(SQL_SALESMAN->CODIGO)
+        oSalesmanInfo[ 'cpf' ]            := Alltrim(SQL_SALESMAN->CPF)
+        oSalesmanInfo[ 'email' ]          := Alltrim(SQL_SALESMAN->EMAIL)
+        oSalesmanInfo[ 'phone' ]          := Alltrim(SQL_SALESMAN->TELEFONE)
+        oSalesmanInfo[ 'cellPhone' ]      := Alltrim(SQL_SALESMAN->CELULAR)
+        oSalesmanInfo[ 'adress' ]         := Alltrim(SQL_SALESMAN->ENDERECO)
+        oSalesmanInfo[ 'city' ]           := Alltrim(SQL_SALESMAN->MUNICIPIO)
+        oSalesmanInfo[ 'state' ]          := Alltrim(SQL_SALESMAN->ESTADO)
+        oSalesmanInfo[ 'zipCode' ]        := Alltrim(SQL_SALESMAN->CEP)
+        oSalesmanInfo[ 'commissionRate' ] := Alltrim(SQL_SALESMAN->COMISSAO)
 
     EndIf
     SQL_SALESMAN->(DbCloseArea())
@@ -526,3 +664,96 @@ method GetSalesman(cSalesmanId) class TarosModel
     oResponse[ 'salesmanInfo' ] := oSalesmanInfo
 
     return oResponse
+
+method GetSalesBudgets() class TarosModel
+    local oResponse     := JsonObject():New()
+    local oSalesBudget  := JsonObject():New()
+    local aSalesBudgets := {}
+
+    BeginSql Alias "SQL_SALESBUDGETS"
+        SELECT
+            CJ_NUM NUMERO,
+            CJ_EMISSAO EMISSAO,
+            CJ_CLIENTE CLIENTE,
+            CJ_CONDPAG CONDPAG
+        FROM
+            %Table:SCJ% SCJ
+    EndSql
+
+    While !SQL_SALESBUDGETS->(EoF())
+        oSalesBudget[ 'id' ]               := Alltrim(SQL_SALESBUDGETS->NUMERO)
+        oSalesBudget[ 'dateOfEmission' ]   := IIF(EMPTY(SQL_SALESBUDGETS->EMISSAO), '' , cvaltochar(year2Str(stod(SQL_SALESBUDGETS->EMISSAO))) + "-" + cvaltochar(Month2Str(stod(SQL_SALESBUDGETS->EMISSAO))) + '-' + cvaltochar(Day2Str(stod(SQL_SALESBUDGETS->EMISSAO))))
+        oSalesBudget[ 'customer' ]         := Alltrim(SQL_SALESBUDGETS->CLIENTE)
+        oSalesBudget[ 'paymentCondition' ] := Alltrim(SQL_SALESBUDGETS->CONDPAG)
+
+        aadd(aSalesBudgets, oSalesBudget)
+        oSalesBudget := JsonObject():New()
+
+        SQL_SALESBUDGETS->(DbSkip())
+    EndDo
+    SQL_SALESBUDGETS->(DbCloseArea())
+
+    oResponse[ 'items' ] := aSalesBudgets
+
+    return oResponse
+
+
+method GetImports() class TarosModel
+    local oResponse := JsonObject():New()
+    local oImport   := JsonObject():New()
+    local aImports  := {}
+
+    BeginSql Alias "SQL_IMPORTS"
+        SELECT DISTINCT
+            Z00_DATA AS DATA,
+            Z00_STATUS AS STATUS,
+            Z00_CNPJ AS CNPJ, 
+            Z00_TABELA AS TABELA, 
+            E4_DESCRI AS CONDICAO_PAGAMENTO, 
+            Z00_PDESC AS PERCENTUAL_DESCONTO, 
+            Z00_PEDCOM AS PEDIDO_COMPRA, 
+            Z00_EMISSA AS DATA_EMISSAO, 
+            Z00_ARQUIV AS ARQUIVO,
+            Z00_PV AS PEDIDO_VENDA
+        FROM 
+            %Table:Z00% Z00
+        LEFT JOIN
+            %Table:SE4% SE4 ON E4_CODIGO = Z00_CONDPG AND SE4.D_E_L_E_T_ = ''
+        WHERE 
+            Z00.D_E_L_E_T_ = ''
+    EndSql
+
+    While !SQL_IMPORTS->(EoF())
+        oImport[ 'date' ]             := IIF(EMPTY(SQL_IMPORTS->DATA), '' , ;
+                                            cvaltochar(year2Str(stod(SQL_IMPORTS->DATA))) + "-" + ;
+                                            cvaltochar(Month2Str(stod(SQL_IMPORTS->DATA))) + "-" + ;
+                                            cvaltochar(Day2Str(stod(SQL_IMPORTS->DATA))))
+        oImport[ 'status' ]           := Alltrim(SQL_IMPORTS->STATUS)
+        oImport[ 'cnpj' ]             := Alltrim(SQL_IMPORTS->CNPJ)
+        oImport[ 'priceTable' ]       := Alltrim(SQL_IMPORTS->TABELA)
+        oImport[ 'paymentCondition' ] := Alltrim(SQL_IMPORTS->CONDICAO_PAGAMENTO)
+        oImport[ 'discountPercent' ]  := SQL_IMPORTS->PERCENTUAL_DESCONTO
+        oImport[ 'purchaseOrder' ]    := Alltrim(SQL_IMPORTS->PEDIDO_COMPRA)
+        oImport[ 'issueDate' ]        := IIF(EMPTY(SQL_IMPORTS->DATA_EMISSAO), '' , ;
+                                            cvaltochar(year2Str(stod(SQL_IMPORTS->DATA_EMISSAO))) + "-" + ;
+                                            cvaltochar(Month2Str(stod(SQL_IMPORTS->DATA_EMISSAO))) + "-" + ;
+                                            cvaltochar(Day2Str(stod(SQL_IMPORTS->DATA_EMISSAO))))
+        oImport[ 'fileName' ]         := Alltrim(SQL_IMPORTS->ARQUIVO)
+        oImport[ 'salesOrder' ]       := Alltrim(SQL_IMPORTS->PEDIDO_VENDA)
+
+        aadd(aImports, oImport)
+        oImport := JsonObject():New()
+
+        SQL_IMPORTS->(DbSkip())
+    EndDo
+    SQL_IMPORTS->(DbCloseArea())
+
+    oResponse[ 'items' ] := aImports
+
+    return oResponse
+
+method PostPasswordRecovery() Class TarosModel
+
+    U_VCENVMAIL("Assunto Teste", "Mensagem Teste", "daniel.matias.simon@gmail.com", "", "")
+
+    return

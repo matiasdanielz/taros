@@ -12,20 +12,6 @@ export class AddSalesRequestItemModalComponent {
 
   @Output() itemCreated = new EventEmitter<any>(); // <<< Aqui emitimos quando o item for criado
 
-  //Parametros Da Tabela
-  protected tableHeight: number = window.innerHeight / 1.5;
-  protected tableActions: PoTableAction[] = [
-    {
-      label: 'Editar',
-      icon: 'po-icon-edit',
-    },
-    {
-      label: 'Excluir',
-      icon: 'po-icon-delete',
-      type: 'danger',
-    }
-  ];
-
   //Cadastro
   protected salesRequestsFields: PoDynamicFormField[] = [];
   protected salesRequestValue: any = {};
@@ -43,7 +29,6 @@ export class AddSalesRequestItemModalComponent {
   }
 
   public OnCreateSalesRequestItem() {
-    // Aqui você pode processar ou validar os dados
 
     // Emite o item criado para o componente pai
     this.itemCreated.emit(this.salesRequestValue);

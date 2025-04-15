@@ -1,4 +1,4 @@
-/*po-modal[class="salesRequestModal"] .po-modal-body{
+po-modal[class="salesRequestModal"] .po-modal-body{
     max-width: 95vw;
 }
 
@@ -7,5 +7,9 @@ po-modal[class="salesRequestModal"] .po-modal-content {
 }
 
 po-modal[class="salesRequestModal"] .po-modal-xl{
-    width: 80%;
-}*/
+    width: 75%;
+}
+
+#salesRequestStepper .po-stepper-container {
+    pointer-events: none !important;
+}

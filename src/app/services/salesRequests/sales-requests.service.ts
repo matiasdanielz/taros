@@ -23,6 +23,19 @@ export class SalesRequestsService {
     private operationsService: OperationsService
   ) { }
 
+  public async GetSalesRequestTaxes(body: any) {
+    const url: string = `http://200.229.234.214:8091/rest/valclei/imposto`;
+  
+    try {
+      const response: any = await this.http.get(url, environment.header).toPromise();
+      return response;
+    } catch (error: any) {
+      const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
+  
+      return { sucesso: false, mensagem: errorMessage };
+    }
+  }
+
   public async PostSalesRequest(body: any) {
     const url: string = `http://200.229.234.214:8091/rest/valclei/pedidovenda`;
   
@@ -86,89 +99,6 @@ export class SalesRequestsService {
         gridColumns: 6
       },
       {
-        property: 'C5_CONDPAG',
-        label: 'Condição De Pagamento',
-        searchService: this.paymentConditionsService,
-        columns: [
-          {
-            property: 'value',
-            label: 'Codigo'
-          },
-          {
-            property: 'label',
-            label: 'Descrição'
-          }
-        ],
-        required: true,
-        showRequired: true,
-        gridColumns: 6
-      },
-      {
-        property: 'C5_EMISSAO',
-        label: 'Data Emissão',
-        type: 'date',
-        required: true,
-        showRequired: true,
-        gridColumns: 6
-      },
-      {
-        property: 'C5_TABELA',
-        label: 'Tabela',
-        searchService: this.priceTableService,
-        columns: [
-          {
-            property: 'value',
-            label: 'Codigo'
-          },
-          {
-            property: 'label',
-            label: 'Descrição'
-          }
-        ],
-        required: true,
-        showRequired: true,
-        gridColumns: 6
-      },
-      {
-        property: 'C5_TIPO',
-        label: 'Tipo Pedido',
-        required: true,
-        showRequired: true,
-        options: [
-          {
-            value: "N",
-            label: "Normal",
-            color: "color-01",
-          },
-          {
-            value: "D",
-            label: "Devolução de Compras (Excl. Brasil)",
-            color: "color-02"
-          },
-          {
-            value: "C",
-            label: "Complemento de Preços/Quantidades (Excl. Brasil)",
-            color: "color-03"
-          },
-          {
-            value: "P",
-            label: "Complemento de IPI (Excl. Brasil)",
-            color: "color-04"
-          },
-          {
-            value: "I",
-            label: "Complemento de ICMS (Excl. Brasil)",
-            color: "color-05"
-          },
-          {
-            value: "B",
-            label: "Apresentação Fornecedor (Material p/Benef)",
-            color: "color-06"
-          }
-        ],
-        gridColumns: 6
-      },
-      {
         property: 'C5_TPFRETE',
         label: 'Tipo De Frete',
         required: true,
@@ -213,8 +143,56 @@ export class SalesRequestsService {
   public GetSalesRequestsHeaderColumns(): PoTableColumn[] {
     return [
       {
-        property: "store",
-        label: "Loja",
+        property: 'branch',
+        label: 'Filial',
+        width: '120px'
+      },      
+      {
+        property: 'status',
+        label: 'Status',
+        type: 'label',
+        labels: [
+          {
+            value: 'emAberto',
+            label: 'Em Aberto',
+            color: 'color-04'
+          },
+          {
+            value: 'encerrado',
+            label: 'Encerrado',
+            color: 'color-05'
+          },
+          {
+            value: 'liberado',
+            label: 'Liberado',
+            color: 'color-06'
+          },
+          {
+            value: 'bloqueadoPorRegra',
+            label: 'Bloqueado Por Regra',
+            color: 'color-07'
+          },
+          {
+            value: 'bloqueadoPorVerba',
+            label: 'Bloqueado Por Verba',
+            color: 'color-08'
+          },
+          {
+            value: 'bloqueadoPorEstoque',
+            label: 'Bloqueado Por Estoque',
+            color: 'color-09'
+          },
+          {
+            value: 'naoIdentificado',
+            label: 'Não Identificado',
+            color: 'color-10'
+          },
+        ],
+        width: '150px'
+      },
+      {
+        property: 'orderNumber',
+        label: 'Pedido',
         width: "100px"
       },
       {
@@ -223,58 +201,19 @@ export class SalesRequestsService {
         width: "150px"
       },
       {
+        property: "store",
+        label: "Loja",
+        width: "75px"
+      },
+      {
         property: "customerName",
         label: "Nome do Cliente",
         width: "250px"
       },
       {
-        property: "orderType",
-        label: "Tipo de Pedido",
-        type: "label",
-        width: "150px",
-        labels: [
-          {
-            value: "N",
-            label: "Normal",
-            color: "color-01"
-          },
-          {
-            value: "D",
-            label: "Devolução de Compras (Excl. Brasil)",
-            color: "color-02"
-          },
-          {
-            value: "C",
-            label: "Complemento de Preços/Quantidades (Excl. Brasil)",
-            color: "color-03"
-          },
-          {
-            value: "P",
-            label: "Complemento de IPI (Excl. Brasil)",
-            color: "color-04"
-          },
-          {
-            value: "I",
-            label: "Complemento de ICMS (Excl. Brasil)",
-            color: "color-05"
-          },
-          {
-            value: "B",
-            label: "Apresentação Fornecedor (Material p/Benef)",
-            color: "color-06"
-          }
-        ]
-      },
-      {
         property: "issueDate",
         label: "Data de Emissão",
         type: 'date',
-        width: "150px"
-      },
-
-      {
-        property: "totalValue",
-        label: "Valor Total",
         width: "150px"
       },
       {
@@ -283,20 +222,58 @@ export class SalesRequestsService {
         width: "150px"
       },
       {
+        property: "priceTable",
+        label: "Tabela De Preço",
+        width: "150px"
+      },
+      {
+        property: "carrier",
+        label: "Transportadora",
+        width: "150px"
+      },
+      {
         property: "paymentCondition",
         label: "Condição de Pagamento",
         width: "200px"
       },
       {
-        property: "salesman",
-        label: "Vendedor",
-        width: "200px"
-      },
-      {
-        property: "shippingMethod",
-        label: "Modo de Entrega",
-        width: "200px"
-      },
+        property: 'shippingMethod',
+        label: 'Tipo De Frete',
+        width: '150px',
+        type: 'label',
+        labels: [
+          {
+            value: 'C',
+            label: 'CIF',
+            color: 'color-04'
+          },
+          {
+            value: 'F',
+            label: 'FOB',
+            color: 'color-05'
+          },
+          {
+            value: 'T',
+            label: 'Por Terceiros',
+            color: 'color-06'
+          },
+          {
+            value: 'R',
+            label: 'Por Remetente',
+            color: 'color-07'
+          },
+          {
+            value: 'D',
+            label: 'Pelo Destinatario',
+            color: 'color-08'
+          },
+          {
+            value: 'S',
+            label: 'Sem Frete',
+            color: 'color-09'
+          }
+        ]
+      }
     ]
   }
 
@@ -325,6 +302,7 @@ export class SalesRequestsService {
         property: 'C6_ITEM',
         label: 'Item',
         readonly: true,
+        visible: false,
         gridColumns: 6
       },
       {
@@ -353,32 +331,6 @@ export class SalesRequestsService {
         showRequired: true,
         gridColumns: 6
       },
-      {
-        property: 'C6_QTDLIB',
-        label: 'Quantidade Liberada',
-        type: 'number',
-        required: true,
-        showRequired: true,
-        gridColumns: 6
-      },
-      {
-        property: 'C6_OPER',
-        label: 'Operação',
-        searchService: this.operationsService,
-        columns: [
-          {
-            property: 'value',
-            label: 'Codigo'
-          },
-          {
-            property: 'label',
-            label: 'Descrição'
-          }
-        ],
-        required: true,
-        showRequired: true,
-        gridColumns: 6
-      }
     ];
   }
 
@@ -386,7 +338,7 @@ export class SalesRequestsService {
     return [
       {
         property: 'C6_ITEM',
-        label: 'Item'
+        label: 'Item',
       },
       {
         property: 'C6_PRODUTO',
@@ -397,13 +349,33 @@ export class SalesRequestsService {
         label: 'Qtde Vendida'
       },
       {
-        property: 'C6_QTDLIB',
-        label: 'Quantidade Liberada'
+        property: 'IT_PRCUNI',
+        label: 'Preço De Venda'
       },
       {
-        property: 'C6_OPER',
-        label: 'Operação'
-      }
+        property: 'IT_VALMERC',
+        label: 'Valor Da Mercadoria'
+      },
+      {
+        property: 'IT_VALICM',
+        label: 'Valor ICM'
+      },
+      {
+        property: 'IT_VALSOL',
+        label: 'Valor Solidario'
+      },
+      {
+        property: 'IT_VALIPI',
+        label: 'Valor IPI'
+      },
+      {
+        property: 'IT_DIFAL',
+        label: 'DIFAL'
+      },
+      {
+        property: 'IT_SLDPROD',
+        label: 'Saldo Produto'
+      },
     ];
   }
 }

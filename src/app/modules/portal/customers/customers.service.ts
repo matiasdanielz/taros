@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoTableColumn } from '@po-ui/ng-components';
+import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -9,7 +10,8 @@ import { environment } from 'src/environments/environment';
 export class CustomersService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private cookieService: CookieService
   ) { }
   
   public GetCustomerColumns(): PoTableColumn[]{
@@ -22,6 +24,24 @@ export class CustomersService {
       {
         property: 'store',
         label: 'Loja',
+      },
+      {
+        property: 'status',
+        label: 'Status',
+        width: '150px',
+        type: 'label',
+        labels: [
+          {
+            value: '1',
+            label: 'Ativo',
+            color: 'color-06'
+          },
+          {
+            value: '2',
+            label: 'Inativo',
+            color: 'color-07'
+          }
+        ]
       },
       {
         property: 'name',
@@ -128,14 +148,25 @@ export class CustomersService {
         property: 'email',
         label: 'E-mail',
         width: '200px'
-      }      
+      },
+      {
+        property: 'paymentCondition',
+        label: 'Cond. Pagamento',
+        width: '200px'
+      },
+      {
+        property: 'priceTable',
+        label: 'Tabela de Preço',
+        width: '200px'
+      }    
     ];
   }
 
-  public async GetCustomersItems(page?: number, pageSize?: number, filter?: string): Promise<any[]>{    
+  public async GetCustomersItems(filter?: string): Promise<any[]>{ 
+    const salesmanId = this.cookieService.get('salesmanId');
+    
     const url: string = `${environment.apiDomain}/customers?`+
-      `page=${page}` + 
-      `&pageSize=${pageSize}` + 
+      `&salesmanId=${salesmanId}` + 
       `&filter=${filter}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();

@@ -17,27 +17,32 @@ public GetInvoicesColumns(): PoTableColumn[]{
       {
         property: "id",
         label: "Nota",
-        width: "150px"
+        width: "125px"
       },
       {
         property: 'serial',
         label: 'Serie',
-        width: '150px'
+        width: '75px'
       },
       {
-        property: "client",
+        property: "customerStore",
+        label: "Loja",
+        width: "75px"
+      },
+      {
+        property: "customerId",
+        label: "Id Cliente",
+        width: "100px"
+      },
+      {
+        property: "customerName",
         label: "Cliente",
         width: "250px"
       },
       {
         property: "issueDate",
-        label: "Data de Emissão",
+        label: "Data Emissão",
         type: 'date',
-        width: "130px"
-      },
-      {
-        property: "dueDate",
-        label: "Data de Vencimento",
         width: "130px"
       },
       {
@@ -46,50 +51,76 @@ public GetInvoicesColumns(): PoTableColumn[]{
         width: "120px"
       },
       {
-        property: "status",
-        label: "Status",
-        width: "100px"
+        property: 'icmsBase',
+        label: 'Base ICMS',
+        width: '120px'
       },
       {
-        property: "paymentMethod",
-        label: "Forma de Pagamento",
-        width: "180px"
+        property: 'icmsValue',
+        label: 'Valor ICMS',
+        width: '120px'
       },
       {
-        property: "installments",
-        label: "Parcelas",
-        width: "100px"
+        property: 'ipiBase',
+        label: 'Base IPI',
+        width: '120px'
       },
       {
-        property: "discount",
-        label: "Desconto",
-        width: "120px"
+        property: 'ipiValue',
+        label: 'Valor IPI',
+        width: '120px'
       },
       {
-        property: "salesperson",
-        label: "Código do Vendedor",
-        width: "120px"
+        property: 'goodsValue',
+        label: 'Valor Mercadorias',
+        width: '150px'
       },
       {
-        property: "salespersonName",
-        label: "Nome do Vendedor",
-        width: "200px"
+        property: 'icmsRetained',
+        label: 'ICMS Retido',
+        width: '120px'
       },
       {
-        property: "orderNumber",
-        label: "Número do Pedido",
-        width: "150px"
+        property: 'netWeight',
+        label: 'Peso Líquido',
+        width: '120px'
       },
       {
-        property: "nfNumber",
-        label: "Número da Nota Fiscal",
-        width: "150px"
+        property: 'grossWeight',
+        label: 'Peso Bruto',
+        width: '120px'
       },
       {
-        property: "cfop",
-        label: "CFOP",
-        width: "100px"
-      }
+        property: 'carrier',
+        label: 'Transportadora',
+        width: '200px'
+      },
+      {
+        property: 'otherTaxBase',
+        label: 'Base Outro Imposto',
+        width: '150px'
+      },
+      {
+        property: 'otherTaxValue1',
+        label: 'Outro Imposto 1',
+        width: '150px'
+      },
+      {
+        property: 'otherTaxValue2',
+        label: 'Outro Imposto 2',
+        width: '150px'
+      },
+      {
+        property: 'nfApprovalDate',
+        label: 'Data Autorização',
+        type: 'date',
+        width: '130px'
+      },
+      {
+        property: 'nfApprovalTime',
+        label: 'Hora Autorização',
+        width: '120px'
+      }      
     ]
     
   }

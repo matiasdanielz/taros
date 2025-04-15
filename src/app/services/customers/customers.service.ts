@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoLookupFilteredItemsParams } from '@po-ui/ng-components';
+import { CookieService } from 'ngx-cookie-service';
 import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -11,11 +12,16 @@ import { environment } from 'src/environments/environment';
 export class CustomersService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private cookieService: CookieService
   ) { }
 
   public getFilteredItems(filteredParams: PoLookupFilteredItemsParams): Observable<any> {
-    const url: string = `${environment.apiDomain}/customers`;
+    const salesmanId = this.cookieService.get('salesmanId');
+    
+    const url: string = `${environment.apiDomain}/customers?` + 
+    `salesmanId=${salesmanId}`;
+
     const { filterParams, advancedFilters, ...restFilteredItemsParams } = filteredParams;
     const params = { ...restFilteredItemsParams, ...filterParams, ...advancedFilters };
   

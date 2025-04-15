@@ -1,0 +1,55 @@
+
+<!-- Modal De Inclusão De Cabeçalho -->
+<po-modal
+    #addSalesBudgetHeaderModal
+    p-title="Criar Orçamento De Venda"
+    p-size="xl"
+    class="salesBudgetModal">
+    <po-dynamic-form
+        #addSalesBudgetHeaderForm
+        [p-fields]="salesBudgetFields"
+        [p-value]="salesBudgetValue">
+    </po-dynamic-form>
+    <po-divider
+        class="po-md-12"
+        p-label="Itens">
+    </po-divider>
+    <po-button
+        class="po-md-4 po-mb-3"
+        p-label="Adicionar"
+        p-kind="primary"
+        (p-click)="openItemAddModal()">
+    </po-button>
+    <po-table
+        #addsalesBudgetItemsTable
+        class="po-md-12"
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions"
+        [p-columns]="salesBudgetsItemsColumns"
+        [p-items]="salesBudgetsItems">
+    </po-table>
+    <po-modal-footer
+        [p-disabled-align]="false">
+        <po-button
+            [p-danger]="true"
+            p-label="Cancelar"
+            (p-click)="addSalesBudgetHeaderModal.close()">
+        </po-button>
+        <po-button
+            #createsalesBudgetButton
+            p-kind="primary"
+            p-label="Confirmar"
+            [p-disabled]="isCreateButtonDisabled()">
+        </po-button>
+    </po-modal-footer>
+</po-modal>
+<!-- Modal Para incluir item de orçamento de venda-->
+<app-add-sales-budget-item-modal
+    #addSalesBudgetItemModal
+    (itemCreated)="onSalesBudgetItemCreated($event)">
+</app-add-sales-budget-item-modal>

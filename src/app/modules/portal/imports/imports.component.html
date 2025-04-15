@@ -1,1 +1,91 @@
-<p>imports works!</p>
+<!-- Pagina Principal -->
+<po-page-dynamic-search
+  p-title="Importações"
+  [p-actions]="pageActions">
+  <po-table
+    p-container="true"
+    [p-hide-columns-manager]="true"
+    [p-sort]="true"
+    [p-striped]="true"
+    [p-columns]="importsColumns"
+    [p-items]="importsItems"
+    [p-height]="tableHeight"
+    [p-hide-text-overflow]="true">
+  </po-table>
+</po-page-dynamic-search>
+<!-- Modal de Importação por EDI -->
+<po-modal #ediModal p-title="Importação por EDI">
+
+  <!-- Instruções -->
+  <po-info
+    p-icon="po-icon-info"
+    p-label="Como importar pedidos por EDI"
+    p-detail="Siga os passos abaixo para importar corretamente os dados de pedidos.">
+  </po-info>
+
+  <po-divider p-label="Etapas da Importação"></po-divider>
+  <ul class="po-pl-3 po-mb-3">
+    <li>1. Baixe o <strong>template de EDI</strong> no botão abaixo.</li>
+    <li>2. Preencha com os dados dos pedidos conforme as instruções do
+      modelo.</li>
+    <li>3. Faça o upload do arquivo preenchido no formato <strong>.csv</strong>
+      ou <strong>.txt</strong>.</li>
+    <li>4. Clique em <strong>Importar EDI</strong> para concluir.</li>
+  </ul>
+
+  <div class="po-text-center po-mb-4">
+    <po-button
+      p-icon="po-icon-download"
+      p-label="Download do Template"
+      p-type="primary">
+    </po-button>
+  </div>
+
+  <po-divider p-label="Selecionar Arquivo"></po-divider>
+  <div
+    class="po-text-center">
+    <po-upload
+      [p-url]="'/api/upload/edi'"
+      [p-auto-upload]="false"
+      [p-restrictions]="{ maxFileSize: 1048576 }">
+    </po-upload>
+  </div>
+</po-modal>
+<!-- Modal de Importação por Excel -->
+<po-modal #excelModal p-title="Importação por Excel">
+
+  <!-- Instruções -->
+  <po-info
+    p-icon="po-icon-info"
+    p-label="Como importar pedidos por Excel"
+    p-detail="Siga os passos abaixo para importar corretamente os pedidos a partir de um arquivo Excel.">
+  </po-info>
+
+  <po-divider p-label="Etapas da Importação"></po-divider>
+  <ul class="po-pl-3 po-mb-3">
+    <li>1. Baixe o <strong>modelo de Excel</strong> no botão abaixo.</li>
+    <li>2. Preencha com os dados dos pedidos conforme as instruções do modelo.</li>
+    <li>3. Faça o upload do arquivo preenchido no formato <strong>.xlsx</strong> ou <strong>.xls</strong>.</li>
+    <li>4. Clique em <strong>Importar Excel</strong> para concluir.</li>
+  </ul>
+
+  <!-- Download do Template -->
+  <div class="po-text-center po-mb-4">
+    <po-button
+      p-icon="po-icon-download"
+      p-label="Download do Modelo Excel"
+      p-type="primary">
+    </po-button>
+  </div>
+
+  <!-- Upload do Arquivo -->
+  <po-divider p-label="Selecionar Arquivo"></po-divider>
+  <div class="po-text-center">
+    <po-upload
+      [p-url]="'/api/upload/excel'"
+      [p-auto-upload]="false"
+      [p-restrictions]="{ allowedExtensions: ['.xlsx', '.xls'], maxFileSize: 2097152 }">
+    </po-upload>
+  </div>
+
+</po-modal>

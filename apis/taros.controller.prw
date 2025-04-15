@@ -15,6 +15,9 @@ class TarosController from longclassname
     static method GetProducts()
     static method GetOperations()
     static method GetSalesman()
+    static method GetSalesBudgets()
+    static method GetImports()
+    static method PostPasswordRecovery()
 endclass
 
 static method Login(oLoginInfo) class TarosController
@@ -27,13 +30,13 @@ static method Login(oLoginInfo) class TarosController
 
     return oJsonResult
 
-static method GetCustomers(nPage, nPageSize, cFilter) class TarosController
+static method GetCustomers(cSalesmanId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetCustomers(nPage, nPageSize, cFilter)
+    oJsonResult := oTarosModel:GetCustomers(cSalesmanId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -163,5 +166,45 @@ static method GetSalesman(cSalesmanId) class TarosController
         oJsonResult['responseCode'] := '404'
         oJsonResult['response'] := 'No pay conditions found'
     endif
+
+    return oJsonResult
+
+static method GetSalesBudgets() class TarosController
+    local oJsonResult := JsonObject():New()
+    local oTarosModel := JsonObject():New()
+
+    oTarosModel := TarosModel():New()
+
+    oJsonResult := oTarosModel:GetSalesBudgets()
+    
+    if oJsonResult == nil
+        oJsonResult['responseCode'] := '404'
+        oJsonResult['response'] := 'No pay conditions found'
+    endif
+
+    return oJsonResult
+
+static method GetImports() class TarosController
+    local oJsonResult := JsonObject():New()
+    local oTarosModel := JsonObject():New()
+
+    oTarosModel := TarosModel():New()
+
+    oJsonResult := oTarosModel:GetImports()
+    
+    if oJsonResult == nil
+        oJsonResult['responseCode'] := '404'
+        oJsonResult['response'] := 'No pay conditions found'
+    endif
+
+    return oJsonResult
+
+static method PostPasswordRecovery() class TarosController
+    local oJsonResult := JsonObject():New()
+    local oTarosModel := JsonObject():New()
+
+    oTarosModel := TarosModel():New()
+
+    oJsonResult := oTarosModel:PostPasswordRecovery()
 
     return oJsonResult

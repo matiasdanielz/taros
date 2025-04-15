@@ -1,6 +1,7 @@
 <!-- Pagina Principal -->
 <po-page-dynamic-search
-  p-title="Orçamentos De Venda">
+  p-title="Orçamentos De Venda"
+  [p-actions]="pageActions">
   <po-table
     p-container="true"
     [p-hide-columns-manager]="true"
@@ -12,3 +13,7 @@
     [p-hide-text-overflow]="true">
   </po-table>
 </po-page-dynamic-search>
+<!-- Modal para adicionar orçamento de venda-->
+<app-add-sales-budget-header-modal
+  #addSalesBudgetHeaderModal>
+</app-add-sales-budget-header-modal>

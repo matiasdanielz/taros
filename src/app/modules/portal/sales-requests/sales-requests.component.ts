@@ -31,6 +31,10 @@ export class SalesRequestsComponent {
       action: this.OpenSalesRequestEditModal.bind(this)
     },*/
     {
+      label: 'Visualizar',
+      icon: 'po-icon-eye'
+    },
+    {
       label: 'Excluir',
       icon: 'po-icon-delete',
       type: 'danger',

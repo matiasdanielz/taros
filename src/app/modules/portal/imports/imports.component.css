@@ -1,0 +1,9 @@
+.download-icon {
+    font-size: 3rem;
+    /* Aumenta o tamanho do ícone */
+    display: block;
+    margin: 0 auto 1rem auto;
+    /* Centraliza e adiciona espaçamento abaixo */
+    color: #007bff;
+    /* Cor azul */
+  }

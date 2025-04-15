@@ -1,40 +1,51 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {
   PoDynamicFormComponent,
   PoDynamicFormField,
   PoModalComponent,
   PoNotificationService,
+  PoStepperComponent,
   PoTableAction,
-  PoTableColumn,
-  PoTableComponent
+  PoTableColumn
 } from '@po-ui/ng-components';
 
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { AddSalesRequestItemModalComponent } from '../add-sales-request-item-modal/add-sales-request-item-modal.component';
+import { EditSalesRequestItemModalComponent } from '../edit-sales-request-item-modal/edit-sales-request-item-modal.component';
+
+enum Step {
+  Header = 0,
+  Items = 1,
+  Summary = 2
+}
 
 @Component({
   selector: 'app-add-sales-request-header-modal',
   templateUrl: './add-sales-request-header-modal.component.html',
   styleUrls: ['./add-sales-request-header-modal.component.css']
 })
-export class AddSalesRequestHeaderModalComponent {
+export class AddSalesRequestHeaderModalComponent implements OnInit {
   @ViewChild('addSalesRequestHeaderModal', { static: true }) private modalHeader!: PoModalComponent;
-  @ViewChild('addSalesRequestItemModal', { static: true }) private modalItem!: AddSalesRequestItemModalComponent;
+  @ViewChild('addSalesRequestItemModal', { static: true }) private addItemModal!: AddSalesRequestItemModalComponent;
+  @ViewChild('editSalesRequestItemModal', { static: true }) private editItemModal!: EditSalesRequestItemModalComponent;
   @ViewChild('addSalesRequestHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
+  @ViewChild('salesRequestStepper', { static: true }) private stepperComponent!: PoStepperComponent;
 
   protected salesRequestFields: PoDynamicFormField[] = [];
   protected salesRequestValue: any = {};
   protected tableColumns: PoTableColumn[] = [];
   protected tableItems: any[] = [];
 
-  readonly tableHeight = window.innerHeight / 2.2;
+  protected currentStep: Step = Step.Header;
+
+  readonly tableHeight = window.innerHeight / 3;
 
   readonly tableActions: PoTableAction[] = [
-    /*{
+    {
       label: 'Editar',
       icon: 'po-icon-edit',
-      action: () => this.openItemModal()
-    },*/
+      action: this.openItemEditModal.bind(this)
+    },
     {
       label: 'Excluir',
       icon: 'po-icon-delete',
@@ -46,7 +57,9 @@ export class AddSalesRequestHeaderModalComponent {
   constructor(
     private salesRequestsService: SalesRequestsService,
     private poNotification: PoNotificationService
-  ) {
+  ) {}
+
+  ngOnInit(): void {
     this.tableColumns = this.salesRequestsService.GetSalesRequestsItemsColumns();
     this.salesRequestFields = this.salesRequestsService.GetSalesRequestsHeaderFields();
   }
@@ -54,56 +67,115 @@ export class AddSalesRequestHeaderModalComponent {
   public open(): void {
     this.salesRequestValue = {};
     this.tableItems = [];
+    this.currentStep = Step.Header;
     this.modalHeader.open();
+  }
+
+  public cancel(): void {
+    this.modalHeader.close();
+  }
+
+  protected canActiveNextStep(): boolean {
+    if (this.currentStep === Step.Header && this.headerForm?.form?.invalid) {
+      this.poNotification.error('Preencha os campos obrigatórios para prosseguir!');
+      return false;
+    }
+
+    if (this.currentStep === Step.Items && (!this.tableItems || this.tableItems.length === 0)) {
+      this.poNotification.error('Adicione ao menos um item para prosseguir!');
+      return false;
+    }
+
+    return true;
+  }
+
+  protected onChangeStep(newStep: any): void {
+    const stepLabelMap: Record<string, Step> = {
+      'Cabeçalho': Step.Header,
+      'Itens': Step.Items,
+      'Resumo': Step.Summary
+    };
+
+    const newStepLabel = newStep['label'];
+    this.currentStep = stepLabelMap[newStepLabel] ?? Step.Header;
+  }
+
+  protected openItemEditModal(selectedItem: any): void {
+    this.editItemModal.open(selectedItem);
   }
 
   protected openItemModal(): void {
     const nextItemNumber = this.getNextItemNumber();
-    this.modalItem.open(nextItemNumber);
+    this.addItemModal.open(nextItemNumber);
   }
-  
+
   private getNextItemNumber(): string {
     if (this.tableItems.length === 0) {
       return '001';
     }
+
+    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['C6_ITEM'], 10) || 0));
+    return (maxItem + 1).toString().padStart(3, '0');
+  }
+
+  public onSalesRequestItemCreated(item: any): void {
+    // Adiciona o item à lista
+    this.tableItems = [...this.tableItems, item];
   
-    const maxItem = Math.max(
-      ...this.tableItems.map(item => parseInt(item['C6_ITEM'], 10) || 0)
-    );
+    // Clona os dados do cabeçalho
+    const headerData = { ...this.salesRequestValue };
   
-    const nextItem = (maxItem + 1).toString().padStart(3, '0');
-    return nextItem;
+    // Formata a data (se necessário)
+    if (headerData['C5_EMISSAO']) {
+      headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
+    }
+  
+    // Define campos obrigatórios
+    headerData['C5_LOJACLI'] = '01'; // ou o valor real, se já tiver vindo do formulário
+    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
+    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
+    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
+  
+    // Anexa os itens
+    headerData['ITENS'] = this.tableItems;
+  
+    // Exibe o JSON final
+    console.log('JSON para POST:', JSON.stringify(headerData, null, 2));
   }
   
-  public onSalesRequestItemCreated(item: any): void {
-    this.tableItems = [...this.tableItems, item];
+
+  public onSalesRequestItemEdited(item: any): void {
+    this.tableItems = this.tableItems.map(existing =>
+      existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing
+    );
   }
 
   private removeItem(itemToRemove: any): void {
     this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
     this.renumberItems();
   }
-  
+
   private renumberItems(): void {
     this.tableItems = this.tableItems.map((item, index) => ({
       ...item,
       C6_ITEM: (index + 1).toString().padStart(3, '0')
     }));
-  }  
+  }
 
   protected isCreateButtonDisabled(): boolean {
-    return !this.headerForm || this.headerForm.form.invalid || this.tableItems.length === 0;
+    const isFormInvalid = this.headerForm?.form?.invalid ?? true;
+    return isFormInvalid || this.tableItems.length === 0;
   }
 
   protected async createSalesRequest(): Promise<void> {
-    const requestPayload = this.buildSalesRequestPayload();
+    const payload = this.buildSalesRequestPayload();
 
     try {
-      const response = await this.salesRequestsService.PostSalesRequest(requestPayload);
+      const response = await this.salesRequestsService.PostSalesRequest(payload);
 
-      if (response?.codigo === '201') {
+      if (response?.codigo === 201) {
         this.modalHeader.close();
-        this.poNotification.success('Registro Criado Com Sucesso');
+        this.poNotification.success('Registro Criado com Sucesso');
       } else {
         this.poNotification.error(response?.mensagem || 'Erro ao criar pedido');
       }
