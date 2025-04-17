@@ -45,3 +45,12 @@
     [p-actions]="tableActions">
   </po-table>
 </po-page-dynamic-search>
+<!-- Modal para ver detalhes --> 
+ <po-modal
+    #invoiceInfoModal
+    p-title="Detalhes Da NF">
+    <po-dynamic-view
+        [p-fields]="invoicesFields"
+        [p-value]="currentInvoiceInView">
+    </po-dynamic-view>
+ </po-modal>

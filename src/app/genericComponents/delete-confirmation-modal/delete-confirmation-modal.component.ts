@@ -16,6 +16,10 @@ export class DeleteConfirmationModalComponent {
     this.DeleteConfirmationModal.open();
   }
 
+  public close(){
+    this.DeleteConfirmationModal.close();
+  }
+
   protected ConfirmDelete(){
     this.onDelete.emit();
   }

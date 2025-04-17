@@ -84,7 +84,7 @@ static method GetCommissions(cSalesmanId) class TarosController
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetCommissions(cSalesmanId)
+    oJsonResult := oTarosModel:GetHeaderCommissions(cSalesmanId)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'

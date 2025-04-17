@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { PoButtonGroupItem, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
+import { PoButtonGroupItem, PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { InvoicesService } from './invoices.service';
 
 @Component({
@@ -9,6 +9,7 @@ import { InvoicesService } from './invoices.service';
 })
 export class InvoicesComponent {
   @ViewChild('downloadsModal', {static: true}) downloadsModal!: PoModalComponent;
+  @ViewChild('invoiceInfoModal', {static: true}) invoiceInfoModal!: PoModalComponent;
 
   //Popup de downloads
   protected downloadButtons: PoButtonGroupItem[] = [
@@ -30,6 +31,11 @@ export class InvoicesComponent {
   protected tableHeight: number = window.innerHeight / 1.5;
   protected tableActions: PoTableAction[] = [
     {
+      label: 'Visualizar',
+      icon: 'po-icon-eye',
+      action: this.openInvoiceInfoModal.bind(this)
+    },
+    {
       label: 'Downloads',
       icon: 'po-icon-download',
       action: () => this.downloadsModal.open()
@@ -39,6 +45,8 @@ export class InvoicesComponent {
   //Itens Da Tabela De Clientes
   protected invoicesColumns: PoTableColumn[] = [];
   protected invoicesItems: any[] = [];
+  protected invoicesFields: PoDynamicViewField[] = [];
+  protected currentInvoiceInView: any;
   protected page: number = 0;
   protected pageSize: number = 12;
   protected filter: string = '';
@@ -47,6 +55,7 @@ export class InvoicesComponent {
     private invoicesService: InvoicesService
   ){
     this.invoicesColumns = invoicesService.GetInvoicesColumns();
+    this.invoicesFields = invoicesService.GetInvoicesFields();
   }
 
   async ngOnInit(): Promise<void> {
@@ -55,6 +64,11 @@ export class InvoicesComponent {
 
   protected async LoadInvoices(){
     this.invoicesItems = await this.invoicesService.GetInvoicesItems(this.page, this.pageSize, this.filter);
+  }
+
+  protected openInvoiceInfoModal(selectedItem: any){
+    this.currentInvoiceInView = selectedItem;
+    this.invoiceInfoModal.open();
   }
 
   protected onSearch(filter: string): any {

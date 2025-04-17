@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PoTableColumn } from '@po-ui/ng-components';
+import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
 
@@ -161,6 +161,106 @@ export class CustomersService {
       }    
     ];
   }
+
+  public GetCustomerFields(): PoDynamicViewField[]{
+    return [
+      {
+        property: 'id',
+        label: 'Código',
+        gridColumns: 6
+      },
+      {
+        property: 'store',
+        label: 'Loja',
+        gridColumns: 6
+      },
+      {
+        property: 'status',
+        label: 'Status',
+        gridColumns: 6,
+        type: 'label',
+        tag: true
+      },
+      {
+        property: 'name',
+        label: 'Nome',
+        gridColumns: 6
+      },
+      {
+        property: 'fantasyName',
+        label: 'Nome Reduzido',
+        gridColumns: 6,
+      },
+      {
+        property: 'type',
+        label: 'Tipo de Cliente',
+        gridColumns: 6,
+        tag: true
+      },
+      {
+        property: 'person',
+        label: 'Pessoa (F/J)',
+        gridColumns: 6,
+        tag: true
+      },
+      {
+        property: 'brazilianTaxId',
+        label: 'CNPJ/CPF',
+        gridColumns: 6,
+      },
+      {
+        property: 'stateInscription',
+        label: 'Inscrição Estadual',
+        gridColumns: 6,
+      },
+      {
+        property: 'adress',
+        label: 'Endereço',
+        gridColumns: 6,
+      },
+      {
+        property: 'neighborhood',
+        label: 'Bairro',
+        gridColumns: 6,
+      },
+      {
+        property: 'city',
+        label: 'Cidade',
+        gridColumns: 6,
+      },
+      {
+        property: 'state',
+        label: 'Estado',
+        gridColumns: 6,
+      },
+      {
+        property: 'zip',
+        label: 'CEP',
+        gridColumns: 6,
+      },
+      {
+        property: 'phone',
+        label: 'Telefone',
+        gridColumns: 6,
+      },
+      {
+        property: 'email',
+        label: 'E-mail',
+        gridColumns: 6,
+      },
+      {
+        property: 'paymentCondition',
+        label: 'Cond. Pagamento',
+        gridColumns: 6,
+      },
+      {
+        property: 'priceTable',
+        label: 'Tabela de Preço',
+        gridColumns: 6,
+      }    
+    ];
+  }
+
 
   public async GetCustomersItems(filter?: string): Promise<any[]>{ 
     const salesmanId = this.cookieService.get('salesmanId');

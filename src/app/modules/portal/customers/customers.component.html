@@ -12,6 +12,16 @@
         [p-columns]="customersColumns"
         [p-items]="customersItems"
         [p-height]="tableHeight"
-        [p-hide-text-overflow]="true">
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions">
     </po-table>
 </po-page-dynamic-search >
+<!-- Mais detalhes modal-->
+ <po-modal
+    #customerInfoModal
+    p-title="Detalhes Do Cliente">
+    <po-dynamic-view
+        [p-fields]="customersFields"
+        [p-value]="currentCustomerInView">
+    </po-dynamic-view>
+ </po-modal>

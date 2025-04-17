@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PoTableColumn } from '@po-ui/ng-components';
+import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -11,6 +11,64 @@ export class ImportsService {
   constructor(
     private http: HttpClient
   ) { }
+
+  public GetImportsFields(): PoDynamicViewField[] {
+    return [
+      {
+        property: 'salesOrder',
+        label: 'Pedido de Venda',
+        gridColumns: 6
+      },
+      {
+        property: 'date',
+        label: 'Data',
+        type: 'date',
+        gridColumns: 6
+      },
+      {
+        property: 'status',
+        label: 'Status',
+        gridColumns: 6,
+        tag: true
+      },
+      {
+        property: 'cnpj',
+        label: 'CNPJ',
+        gridColumns: 6
+      },
+      {
+        property: 'priceTable',
+        label: 'Tabela de Preço',
+        gridColumns: 6
+      },
+      {
+        property: 'paymentCondition',
+        label: 'Cond. Pagamento',
+        gridColumns: 6
+      },
+      {
+        property: 'discountPercent',
+        label: '% Desconto',
+        gridColumns: 6
+      },
+      {
+        property: 'purchaseOrder',
+        label: 'Pedido de Compra',
+        gridColumns: 6
+      },
+      {
+        property: 'issueDate',
+        label: 'Data Emissão',
+        type: 'date',
+        gridColumns: 6
+      },
+      {
+        property: 'fileName',
+        label: 'Arquivo',
+        gridColumns: 6
+      }
+    ];
+  }  
 
   public GetImportsColumns(): PoTableColumn[]{
     return [
@@ -82,11 +140,11 @@ export class ImportsService {
     ];
   }
 
-    public async GetImportsItems(): Promise<any[]>{    
-      const url: string = `${environment.apiDomain}/imports?`;
-  
-      const response: any = await this.http.get(url, environment.header).toPromise();
-      
-      return response['items'];
-    } 
+  public async GetImportsItems(): Promise<any[]>{    
+    const url: string = `${environment.apiDomain}/imports?`;
+
+    const response: any = await this.http.get(url, environment.header).toPromise();
+    
+    return response['items'];
+  } 
 }

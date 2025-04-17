@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CustomersService } from './customers.service';
-import { PoTableAction, PoTableColumn } from '@po-ui/ng-components';
+import { PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 
 @Component({
   selector: 'app-customers',
@@ -8,18 +8,23 @@ import { PoTableAction, PoTableColumn } from '@po-ui/ng-components';
   styleUrls: ['./customers.component.css']
 })
 export class CustomersComponent implements OnInit {
+  @ViewChild('customerInfoModal', {static: true}) customerInfoModal!: PoModalComponent;
+
   //Parametros Da Tabela
   protected tableHeight: number = window.innerHeight / 1.5;
   protected tableActions: PoTableAction[] = [
     {
-      label: 'Ver Mais',
-      icon: 'po-icon-eye'
+      label: 'Visualizar',
+      icon: 'po-icon-eye',
+      action: this.openCustomerInfoModal.bind(this)
     },
   ];
 
   //Itens Da Tabela De Clientes
   protected customersColumns: PoTableColumn[] = [];
   protected customersItems: any[] = [];
+  protected customersFields: PoDynamicViewField[] = [];
+  protected currentCustomerInView: any;
   protected page: number = 0;
   protected pageSize: number = 12;
   protected filter: string = '';
@@ -28,6 +33,7 @@ export class CustomersComponent implements OnInit {
     private customersService: CustomersService
   ){
     this.customersColumns = customersService.GetCustomerColumns();
+    this.customersFields = customersService.GetCustomerFields();
   }
 
   async ngOnInit(): Promise<void> {
@@ -36,6 +42,11 @@ export class CustomersComponent implements OnInit {
 
   protected async LoadCustomers(){
     this.customersItems = await this.customersService.GetCustomersItems(this.filter);
+  }
+
+  protected openCustomerInfoModal(selectedItem: any){
+    this.currentCustomerInView = selectedItem;
+    this.customerInfoModal.open();
   }
 
   protected onSearch(filter: string): any {

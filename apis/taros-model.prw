@@ -10,7 +10,8 @@ class TarosModel from longclassname
     method GetCustomers()
     method GetInvoices()
     method GetSalesRequests()
-    method GetCommissions()
+    method GetHeaderCommissions()
+    method GetItemsCommissions()
     method GetPayConditions()
     method GetPriceTables()
     method GetProducts()
@@ -19,6 +20,7 @@ class TarosModel from longclassname
     method GetSalesBudgets()
     method GetImports()
     method PostPasswordRecovery()
+    method GetItemsSalesRequests()
 endclass
 
 method New() class TarosModel
@@ -310,6 +312,7 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
             C5_TRANSP AS TRANSPORTADORA,
             C5_TPFRETE AS TIPO_FRETE,
             C5_TABELA AS TABELA_PRECO,
+            C5_MENNOTA AS MSG_NOTA,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SC5% SC5
@@ -349,6 +352,8 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
         oSalesRequest[ 'discount' ]         := SQL_SALES_REQUESTS->DESCONTO
         oSalesRequest[ 'priceTable' ]       := SQL_SALES_REQUESTS->TABELA_PRECO
         oSalesRequest[ 'status' ]           := Alltrim(SQL_SALES_REQUESTS->STATUS)
+        oSalesRequest[ 'message' ]          := Alltrim(SQL_SALES_REQUESTS->MSG_NOTA)
+        oSalesRequest[ 'items' ]            := ::GetItemsSalesRequests(SQL_SALES_REQUESTS->CODIGO)['items']
 
         aadd(aSalesRequests, oSalesRequest)
         oSalesRequest := JsonObject():New()
@@ -360,13 +365,104 @@ method GetSalesRequests(nPage, nPageSize, cFilter) class TarosModel
     oResponse['items'] := aSalesRequests
 
     return oResponse
-  
-method GetCommissions(cSalesmanId) class TarosModel
+
+method GetItemsSalesRequests(cSalesRequestId) class TarosModel
+    local oSalesRequest  := JsonObject():New()
+    local aSalesRequests := {}
+    Local nOffset        := 0
+    local oResponse      := JsonObject():New()
+
+    Default nPage     := 0
+	Default nPageSize := 10
+	Default cFilter   := ''
+
+    nOffset := nPageSize * nPage
+
+    BeginSql Alias "SQL_ITEMS_SALES_REQUESTS"
+        SELECT
+            C6_ITEM AS ITEM,
+            C6_PRODUTO AS PRODUTO,
+            C6_QTDVEN AS QTDVEN,
+            COUNT(*) OVER() AS TOTAL
+        FROM
+            %Table:SC6% SC6
+        WHERE
+            SC6.D_E_L_E_T_ = ''
+    EndSql
+
+    oResponse['total'] := SQL_ITEMS_SALES_REQUESTS->TOTAL
+    oResponse['hasNext'] := SQL_ITEMS_SALES_REQUESTS->TOTAL > (nPage + 1) * nPageSize
+
+    While !SQL_ITEMS_SALES_REQUESTS->(EoF())
+        oSalesRequest[ 'C6_ITEM' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->ITEM)
+        oSalesRequest[ 'C6_PRODUTO' ] := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->PRODUTO)
+        oSalesRequest[ 'C6_QTDVEN' ]  := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->QTDVEN)
+
+        aadd(aSalesRequests, oSalesRequest)
+        oSalesRequest := JsonObject():New()
+
+        SQL_ITEMS_SALES_REQUESTS->(DbSkip())
+    EndDo
+    SQL_ITEMS_SALES_REQUESTS->(DbCloseArea())
+
+    oResponse['items'] := aSalesRequests
+
+    return oResponse
+
+method GetHeaderCommissions(cSalesmanId) class TarosModel
+    local oHeaderCommission  := JsonObject():New()
+    local aHeaderCommissions := {}
+    local oResponse      := JsonObject():New()
+    Local aMonths := { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", ;
+                "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" }
+
+    BeginSql Alias "SQL_HEADER_COMMISSIONS"
+        SELECT 
+            SUBSTRING(E3_EMISSAO, 1, 4) AS ANO,
+            SUBSTRING(E3_EMISSAO, 5, 2) AS MES,
+            SUBSTRING(E3_EMISSAO, 1, 6) AS ANO_MES,
+            COUNT(E3_EMISSAO) AS QTDE_COMISSOES,
+            SUM(E3_BASE) AS VENDAS,
+            SUM(E3_COMIS) AS COMISSAO,
+            COUNT(*) AS TOTAL
+        FROM 
+            %Table:SE3% SE3
+        WHERE 
+            SE3.D_E_L_E_T_ = ''
+        GROUP BY 
+            SUBSTRING(E3_EMISSAO, 1, 4),
+            SUBSTRING(E3_EMISSAO, 5, 2),
+            SUBSTRING(E3_EMISSAO, 1, 6)
+        ORDER BY 
+            ANO_MES
+    EndSql
+
+    While !SQL_HEADER_COMMISSIONS->(EoF())
+        oHeaderCommission[ 'year' ]              := alltrim(SQL_HEADER_COMMISSIONS->ANO)
+        oHeaderCommission[ 'month' ]             := alltrim(SQL_HEADER_COMMISSIONS->MES)
+        oHeaderCommission[ 'monthLabel' ]        := aMonths[val(SQL_HEADER_COMMISSIONS->MES)]
+        oHeaderCommission[ 'commissionsAmount' ] := SQL_HEADER_COMMISSIONS->QTDE_COMISSOES
+        oHeaderCommission[ 'salesBase' ]         := SQL_HEADER_COMMISSIONS->VENDAS
+        oHeaderCommission[ 'commissionValue' ]   := SQL_HEADER_COMMISSIONS->COMISSAO
+        oHeaderCommission[ 'items' ]             := ::GetItemsCommissions(SQL_HEADER_COMMISSIONS->ANO_MES)[ 'items' ]
+
+        aadd(aHeaderCommissions, oHeaderCommission)
+        oHeaderCommission := JsonObject():New()
+
+        SQL_HEADER_COMMISSIONS->(DbSkip())
+    EndDo
+    SQL_HEADER_COMMISSIONS->(DbCloseArea())
+
+    oResponse['items'] := aHeaderCommissions
+
+    return oResponse
+
+method GetItemsCommissions(cYearAndMonth) class TarosModel
     local oCommission  := JsonObject():New()
     local aCommissions := {}
     local oResponse    := JsonObject():New()
 
-    BeginSql Alias "SQL_COMMISSIONS"
+    BeginSql Alias "SQL_ITEMS_COMMISSIONS"
         SELECT
             E3_FILIAL AS FILIAL,
             E3_NUM AS ID,
@@ -388,42 +484,44 @@ method GetCommissions(cSalesmanId) class TarosModel
             %Table:SE3% SE3
         WHERE 
            SE3.D_E_L_E_T_ = ''
+        AND
+            SUBSTRING(E3_EMISSAO, 1, 6) = %Exp:cYearAndMonth%
     EndSql
 
-    oResponse['total'] := SQL_COMMISSIONS->TOTAL
-    //oResponse['hasNext'] := SQL_COMMISSIONS->TOTAL > (nPage + 1) * nPageSize
+    oResponse['total'] := SQL_ITEMS_COMMISSIONS->TOTAL
+    //oResponse['hasNext'] := SQL_ITEMS_COMMISSIONS->TOTAL > (nPage + 1) * nPageSize
 
-    While !SQL_COMMISSIONS->(EoF())
-            oCommission[ 'branch' ]          := ALLTRIM(SQL_COMMISSIONS->FILIAL)
-            oCommission[ 'id' ]              := ALLTRIM(SQL_COMMISSIONS->ID)
-            oCommission[ 'emissionDate' ]    := IIF(EMPTY(SQL_COMMISSIONS->EMISSAO), '' , ;
-                                                    cvaltochar(year2Str(stod(SQL_COMMISSIONS->EMISSAO))) + "-" + ;
-                                                    cvaltochar(Month2Str(stod(SQL_COMMISSIONS->EMISSAO))) + "-" + ;
-                                                    cvaltochar(Day2Str(stod(SQL_COMMISSIONS->EMISSAO))))
-            oCommission[ 'serial' ]          := ALLTRIM(SQL_COMMISSIONS->SERIE)
-            oCommission[ 'customer' ]        := ALLTRIM(SQL_COMMISSIONS->CLIENTE)
-            oCommission[ 'salesBase' ]       := ALLTRIM(SQL_COMMISSIONS->BASE)
-            oCommission[ 'percentage' ]      := ALLTRIM(SQL_COMMISSIONS->PORCENTAGEM)
-            oCommission[ 'commissionValue' ] := ALLTRIM(SQL_COMMISSIONS->COMISSAO)
-            oCommission[ 'installment' ]     := ALLTRIM(SQL_COMMISSIONS->PARCELA)
-            oCommission[ 'type' ]            := ALLTRIM(SQL_COMMISSIONS->TIPO)
-            oCommission[ 'store' ]           := ALLTRIM(SQL_COMMISSIONS->LOJA)
-            oCommission[ 'issueClearance' ]  := IIF(EMPTY(SQL_COMMISSIONS->BAIXA_EMISSAO), '' , ;
-                                                    cvaltochar(year2Str(stod(SQL_COMMISSIONS->BAIXA_EMISSAO))) + "-" + ;
-                                                    cvaltochar(Month2Str(stod(SQL_COMMISSIONS->BAIXA_EMISSAO))) + "-" + ;
-                                                    cvaltochar(Day2Str(stod(SQL_COMMISSIONS->BAIXA_EMISSAO))))
-            oCommission[ 'order' ]           := ALLTRIM(SQL_COMMISSIONS->PEDIDO)
-            oCommission[ 'dueDate' ]         := IIF(EMPTY(SQL_COMMISSIONS->VENCIMENTO), '' , ;
-                                                    cvaltochar(year2Str(stod(SQL_COMMISSIONS->VENCIMENTO))) + "-" + ;
-                                                    cvaltochar(Month2Str(stod(SQL_COMMISSIONS->VENCIMENTO))) + "-" + ;
-                                                    cvaltochar(Day2Str(stod(SQL_COMMISSIONS->VENCIMENTO))))
+    While !SQL_ITEMS_COMMISSIONS->(EoF())
+            oCommission[ 'branch' ]          := ALLTRIM(SQL_ITEMS_COMMISSIONS->FILIAL)
+            oCommission[ 'id' ]              := ALLTRIM(SQL_ITEMS_COMMISSIONS->ID)
+            oCommission[ 'emissionDate' ]    := IIF(EMPTY(SQL_ITEMS_COMMISSIONS->EMISSAO), '' , ;
+                                                    cvaltochar(year2Str(stod(SQL_ITEMS_COMMISSIONS->EMISSAO))) + "-" + ;
+                                                    cvaltochar(Month2Str(stod(SQL_ITEMS_COMMISSIONS->EMISSAO))) + "-" + ;
+                                                    cvaltochar(Day2Str(stod(SQL_ITEMS_COMMISSIONS->EMISSAO))))
+            oCommission[ 'serial' ]          := ALLTRIM(SQL_ITEMS_COMMISSIONS->SERIE)
+            oCommission[ 'customer' ]        := ALLTRIM(SQL_ITEMS_COMMISSIONS->CLIENTE)
+            oCommission[ 'salesBase' ]       := SQL_ITEMS_COMMISSIONS->BASE
+            oCommission[ 'percentage' ]      := SQL_ITEMS_COMMISSIONS->PORCENTAGEM
+            oCommission[ 'commissionValue' ] := SQL_ITEMS_COMMISSIONS->COMISSAO
+            oCommission[ 'parcel' ]          := SQL_ITEMS_COMMISSIONS->PARCELA
+            oCommission[ 'type' ]            := ALLTRIM(SQL_ITEMS_COMMISSIONS->TIPO)
+            oCommission[ 'store' ]           := ALLTRIM(SQL_ITEMS_COMMISSIONS->LOJA)
+            oCommission[ 'issueClearance' ]  := IIF(EMPTY(SQL_ITEMS_COMMISSIONS->BAIXA_EMISSAO), '' , ;
+                                                    cvaltochar(year2Str(stod(SQL_ITEMS_COMMISSIONS->BAIXA_EMISSAO))) + "-" + ;
+                                                    cvaltochar(Month2Str(stod(SQL_ITEMS_COMMISSIONS->BAIXA_EMISSAO))) + "-" + ;
+                                                    cvaltochar(Day2Str(stod(SQL_ITEMS_COMMISSIONS->BAIXA_EMISSAO))))
+            oCommission[ 'order' ]           := ALLTRIM(SQL_ITEMS_COMMISSIONS->PEDIDO)
+            oCommission[ 'dueDate' ]         := IIF(EMPTY(SQL_ITEMS_COMMISSIONS->VENCIMENTO), '' , ;
+                                                    cvaltochar(year2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))) + "-" + ;
+                                                    cvaltochar(Month2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))) + "-" + ;
+                                                    cvaltochar(Day2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))))
 
         aadd(aCommissions, oCommission)
         oCommission := JsonObject():New()
 
-        SQL_COMMISSIONS->(DbSkip())
+        SQL_ITEMS_COMMISSIONS->(DbSkip())
     EndDo
-    SQL_COMMISSIONS->(DbCloseArea())
+    SQL_ITEMS_COMMISSIONS->(DbCloseArea())
 
     oResponse['items'] := aCommissions
 

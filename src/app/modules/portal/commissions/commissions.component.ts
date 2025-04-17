@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { PoChartSerie, PoChartType, PoTableColumn } from '@po-ui/ng-components';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { PoChartSerie, PoChartType, PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { CommissionsService } from './commissions.service';
 
 @Component({
@@ -8,6 +8,15 @@ import { CommissionsService } from './commissions.service';
   styleUrls: ['./commissions.component.css']
 })
 export class CommissionsComponent implements OnInit{
+  @ViewChild('commissionDetailsModal', {static: true}) commissionDetailsModal!: PoModalComponent;
+
+  protected tableActions: PoTableAction[] = [
+    {
+      label: 'Visualizar',
+      icon: 'po-icon-eye',
+      action: this.openCommissionDetailsModal.bind(this)
+    }
+  ];
 
   // Charts
   protected commissionsType: PoChartType = PoChartType.Line;
@@ -16,51 +25,46 @@ export class CommissionsComponent implements OnInit{
 
   // Tabela
   protected tableHeight: number = window.innerHeight / 2;
-  protected commissionsColumns: PoTableColumn[] = [];
+  protected commissionsHeaderFields: PoDynamicViewField[] = [];
+  protected currentCommissionHeaderInView: any = {};
+  protected commissionsHeaderColumns: PoTableColumn[] = [];
+  protected commissionsHeaderItems: any[] = [];
+
+  protected commissionsItemsColumns: PoTableColumn[] = [];
   protected commissionsItems: any[] = [];
 
   constructor(private commissionsService: CommissionsService){
-    this.commissionsColumns = this.commissionsService.GetCommissionsColumns();
-
-    this.setupChartData();
+    this.commissionsHeaderColumns = this.commissionsService.GetCommissionsHeaderColumns();
+    this.commissionsItemsColumns = this.commissionsService.GetCommissionsItemsColumns();
+    this.commissionsHeaderFields = this.commissionsService.GetCommissionsHeaderFields();
   }
 
   async ngOnInit(): Promise<void> {
-    this.commissionsItems = await this.commissionsService.GetCommissionsItems();
+    this.commissionsHeaderItems = await this.commissionsService.GetCommissionsItems();
+    this.setupChartData();
   }
 
   private setupChartData(): void {
-    const last6Items = this.commissionsItems.slice(-6);
+    const last6Items = this.commissionsHeaderItems.slice(-6);
 
-    const monthLabelMap: Record<string, string> = {
-      january: 'Janeiro',
-      february: 'Fevereiro',
-      march: 'Março',
-      april: 'Abril',
-      may: 'Maio',
-      june: 'Junho',
-      july: 'Julho',
-      august: 'Agosto',
-      september: 'Setembro',
-      october: 'Outubro',
-      november: 'Novembro',
-      december: 'Dezembro'
-    };
-
-    this.commissionsCategories = last6Items.map(item => monthLabelMap[item.month]);
+    this.commissionsCategories = ["Março"];
     this.commissionsSeries = [
       {
-        label: 'Vendas Brutas',
-        data: last6Items.map(item => item.commissionValue)
-      },
-      {
-        label: 'Vendas Liquidas',
-        data: last6Items.map(item => item.commissionValue)
+        label: 'Vendas',
+        data: last6Items.map(item => item.salesBase),
+        color: 'color-03'
       },
       {
         label: 'Comissão',
-        data: last6Items.map(item => item.commissionValue)
+        data: last6Items.map(item => item.commissionValue),
+        color: 'color-08'
       }
     ];
+  }
+
+  protected openCommissionDetailsModal(selectedItem: any){
+    this.commissionsItems = selectedItem['items'];
+    this.currentCommissionHeaderInView = selectedItem;
+    this.commissionDetailsModal.open();
   }
 }

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PoTableColumn } from '@po-ui/ng-components';
+import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -122,8 +122,119 @@ public GetInvoicesColumns(): PoTableColumn[]{
         width: '120px'
       }      
     ]
-    
   }
+
+  public GetInvoicesFields(): PoDynamicViewField[] {
+    return [
+      {
+        property: "id",
+        label: "Nota",
+        gridColumns: 6
+      },
+      {
+        property: 'serial',
+        label: 'Serie',
+        gridColumns: 6
+      },
+      {
+        property: "customerStore",
+        label: "Loja",
+        gridColumns: 6
+      },
+      {
+        property: "customerId",
+        label: "Id Cliente",
+        gridColumns: 6
+      },
+      {
+        property: "customerName",
+        label: "Cliente",
+        gridColumns: 6
+      },
+      {
+        property: "issueDate",
+        label: "Data Emissão",
+        type: 'date',
+        gridColumns: 6
+      },
+      {
+        property: "totalValue",
+        label: "Valor Total",
+        gridColumns: 6
+      },
+      {
+        property: 'icmsBase',
+        label: 'Base ICMS',
+        gridColumns: 6
+      },
+      {
+        property: 'icmsValue',
+        label: 'Valor ICMS',
+        gridColumns: 6
+      },
+      {
+        property: 'ipiBase',
+        label: 'Base IPI',
+        gridColumns: 6
+      },
+      {
+        property: 'ipiValue',
+        label: 'Valor IPI',
+        gridColumns: 6
+      },
+      {
+        property: 'goodsValue',
+        label: 'Valor Mercadorias',
+        gridColumns: 6
+      },
+      {
+        property: 'icmsRetained',
+        label: 'ICMS Retido',
+        gridColumns: 6
+      },
+      {
+        property: 'netWeight',
+        label: 'Peso Líquido',
+        gridColumns: 6
+      },
+      {
+        property: 'grossWeight',
+        label: 'Peso Bruto',
+        gridColumns: 6
+      },
+      {
+        property: 'carrier',
+        label: 'Transportadora',
+        gridColumns: 6
+      },
+      {
+        property: 'otherTaxBase',
+        label: 'Base Outro Imposto',
+        gridColumns: 6
+      },
+      {
+        property: 'otherTaxValue1',
+        label: 'Outro Imposto 1',
+        gridColumns: 6
+      },
+      {
+        property: 'otherTaxValue2',
+        label: 'Outro Imposto 2',
+        gridColumns: 6
+      },
+      {
+        property: 'nfApprovalDate',
+        label: 'Data Autorização',
+        type: 'date',
+        gridColumns: 6
+      },
+      {
+        property: 'nfApprovalTime',
+        label: 'Hora Autorização',
+        gridColumns: 6
+      }
+    ]
+  }  
 
   public async GetInvoicesItems(page?: number, pageSize?: number, filter?: string): Promise<any[]>{    
     const url: string = `${environment.apiDomain}/invoices?`+

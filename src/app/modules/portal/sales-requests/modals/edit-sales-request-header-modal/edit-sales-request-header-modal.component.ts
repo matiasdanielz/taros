@@ -1,13 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import {
-  PoDynamicFormComponent,
-  PoModalComponent,
-  PoNotificationService,
-  PoStepperComponent,
-  PoTableAction,
-  PoTableColumn
-} from '@po-ui/ng-components';
-
+import { Component, ViewChild } from '@angular/core';
+import { PoModalComponent, PoDynamicFormComponent, PoStepperComponent, PoTableColumn, PoTableAction, PoNotificationService } from '@po-ui/ng-components';
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { AddSalesRequestItemModalComponent } from '../add-sales-request-item-modal/add-sales-request-item-modal.component';
 import { EditSalesRequestItemModalComponent } from '../edit-sales-request-item-modal/edit-sales-request-item-modal.component';
@@ -19,11 +11,11 @@ enum Step {
 }
 
 @Component({
-  selector: 'app-add-sales-request-header-modal',
-  templateUrl: './add-sales-request-header-modal.component.html',
-  styleUrls: ['./add-sales-request-header-modal.component.css']
+  selector: 'app-edit-sales-request-header-modal',
+  templateUrl: './edit-sales-request-header-modal.component.html',
+  styleUrls: ['./edit-sales-request-header-modal.component.css']
 })
-export class AddSalesRequestHeaderModalComponent implements OnInit {
+export class EditSalesRequestHeaderModalComponent {
   @ViewChild('addSalesRequestHeaderModal', { static: true }) private modalHeader!: PoModalComponent;
   @ViewChild('addSalesRequestItemModal', { static: true }) private addItemModal!: AddSalesRequestItemModalComponent;
   @ViewChild('editSalesRequestItemModal', { static: true }) private editItemModal!: EditSalesRequestItemModalComponent;
@@ -56,19 +48,24 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   constructor(
     private salesRequestsService: SalesRequestsService,
     private poNotification: PoNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.tableColumns = this.salesRequestsService.GetSalesRequestsItemsColumns();
     this.salesRequestFields = this.salesRequestsService.GetSalesRequestsHeaderFields();
   }
 
-  public open(): void {
-    this.salesRequestValue = {};
-    this.tableItems = [];
+  public async open(selectedItem: any): Promise<void> {
+    this.salesRequestValue['C5_CLIENTE'] = selectedItem['customerCode'];
+    this.salesRequestValue['C5_TPFRETE'] = selectedItem['shippingMethod'];
+    this.salesRequestValue['C5_MENNOTA'] = selectedItem['shippingMethod'];
+  
+    this.tableItems = selectedItem['items'];
     this.currentStep = Step.Header;
+    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
     this.modalHeader.open();
   }
+  
 
   public cancel(): void {
     this.modalHeader.close();
@@ -118,13 +115,15 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   }
 
   public async onSalesRequestItemCreated(item: any): Promise<void> {
-    // Adiciona o item à lista
     this.tableItems = [...this.tableItems, item];
+    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
+  }
   
-    // Clona os dados do cabeçalho
+
+  private async calculateTaxesForItems(): Promise<void> {
     const headerData = { ...this.salesRequestValue };
   
-    // Formata a data (se necessário)
+    // Formata a data, se existir
     if (headerData['C5_EMISSAO']) {
       headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
     }
@@ -140,10 +139,8 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
     // Anexa os itens
     headerData['ITENS'] = this.tableItems;
   
-    // Chama o serviço e espera a resposta
     const response: any = await this.salesRequestsService.GetSalesRequestTaxes(headerData);
   
-    // Atualiza os itens da tabela com os dados retornados
     if (response && Array.isArray(response.ITENS)) {
       const updatedItems = this.tableItems.map((originalItem) => {
         const matchedItem = response.ITENS.find(
@@ -152,11 +149,11 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
         return matchedItem ? { ...originalItem, ...matchedItem } : originalItem;
       });
   
-      this.tableItems = [];
       this.tableItems = updatedItems;
       this.salesRequestValue = headerData;
     }
   }
+  
 
   public onSalesRequestItemEdited(item: any): void {
     this.tableItems = this.tableItems.map(existing =>
@@ -181,17 +178,17 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
     return isFormInvalid || this.tableItems.length === 0;
   }
 
-  protected async createSalesRequest(): Promise<void> {
+  protected async saveSalesRequest(): Promise<void> {
     const payload = this.buildSalesRequestPayload();
 
     try {
-      const response = await this.salesRequestsService.PostSalesRequest(payload);
+      const response = await this.salesRequestsService.PutSalesRequest(payload);
 
       if (response?.codigo === 201) {
         this.modalHeader.close();
-        this.poNotification.success('Registro Criado com Sucesso');
+        this.poNotification.success('Registro Editado com Sucesso');
       } else {
-        this.poNotification.error(response?.mensagem || 'Erro ao criar pedido');
+        this.poNotification.error(response?.mensagem || 'Erro ao Editar pedido');
       }
     } catch (error) {
       this.poNotification.error('Erro na requisição. Tente novamente mais tarde.');
@@ -200,16 +197,22 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
 
   private buildSalesRequestPayload(): any {
     const payload = { ...this.salesRequestValue };
-
+  
     if (payload['C5_EMISSAO']) {
       payload['C5_EMISSAO'] = this.formatDateToYYYYMMDD(payload['C5_EMISSAO']);
     }
-
+  
     payload['C5_LOJACLI'] = '01';
-    payload['ITENS'] = this.tableItems;
-
+  
+    // Adiciona os campos fixos a cada item
+    payload['ITENS'] = this.tableItems.map(item => ({
+      ...item,
+      LINPOS: '01',
+      AUTDELETA: 'N'
+    }));
+  
     return payload;
-  }
+  }  
 
   private formatDateToYYYYMMDD(dateInput: string | Date): string {
     const date = new Date(dateInput);

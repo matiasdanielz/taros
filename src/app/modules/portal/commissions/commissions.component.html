@@ -2,15 +2,16 @@
     p-title="Comissões"
     class="po-md-12">
     <po-table
-        class="po=md-12"
+        class="po-md-12"
         p-container="true"
         [p-hide-columns-manager]="true"
         [p-sort]="true"
         [p-striped]="true"
-        [p-columns]="commissionsColumns"
-        [p-items]="commissionsItems"
+        [p-columns]="commissionsHeaderColumns"
+        [p-items]="commissionsHeaderItems"
         [p-height]="tableHeight"
-        [p-hide-text-overflow]="true">
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions">
     </po-table>
     <po-chart
         class="po-md-12 po-mt-3"
@@ -20,3 +21,31 @@
     </po-chart>
 
 </po-page-default>
+<!-- modal para ver mais -->
+<po-modal
+    p-title="Detalhes Da Comissão"
+    #commissionDetailsModal
+    p-size="xl">
+    <po-divider
+        p-label="Cabeçalho">
+    </po-divider>
+    <po-dynamic-view
+        [p-fields]="commissionsHeaderFields"
+        [p-value]="currentCommissionHeaderInView">
+
+    </po-dynamic-view>
+    <po-divider
+        p-label="Itens">
+    </po-divider>
+    <po-table
+        class="po-md-12"
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-columns]="commissionsItemsColumns"
+        [p-items]="commissionsItems"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true">
+    </po-table>
+</po-modal>

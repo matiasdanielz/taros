@@ -2,7 +2,7 @@
 <!-- Modal De Inclusão De Cabeçalho -->
 <po-modal
     #addSalesRequestHeaderModal
-    p-title="Criar Pedido De Venda"
+    p-title="Editar Pedido De Venda"
     p-size="xl"
     class="salesRequestModal">
     <po-stepper
@@ -73,7 +73,7 @@
           *ngIf="currentStep === 2"
           p-label="Salvar"
           p-kind="primary"
-          (p-click)="createSalesRequest()"
+          (p-click)="saveSalesRequest()"
           [p-disabled]="isCreateButtonDisabled()">
         </po-button>
       </po-modal-footer>

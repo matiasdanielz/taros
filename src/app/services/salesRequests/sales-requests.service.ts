@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PoDynamicFormField, PoTableColumn } from '@po-ui/ng-components';
+import { PoDynamicFormField, PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { environment } from 'src/environments/environment';
 import { CustomersService } from '../customers/customers.service';
 import { PaymentConditionsService } from '../paymentConditions/payment-conditions.service';
@@ -27,7 +27,7 @@ export class SalesRequestsService {
     const url: string = `http://200.229.234.214:8091/rest/valclei/imposto`;
   
     try {
-      const response: any = await this.http.get(url, environment.header).toPromise();
+      const response: any = await this.http.post(url, body,environment.header).toPromise();
       return response;
     } catch (error: any) {
       const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
@@ -49,6 +49,18 @@ export class SalesRequestsService {
     }
   }
 
+  public async PutSalesRequest(body: any) {
+    const url: string = `http://200.229.234.214:8091/rest/valclei/pedidovenda`;
+  
+    try {
+      const response: any = await this.http.post(url, body, environment.header).toPromise();
+      return response;
+    } catch (error: any) {
+      const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
+  
+      return { sucesso: false, mensagem: errorMessage };
+    }
+  }
 
   public async DeleteSalesRequest(body: any) {
     const url: string = `http://200.229.234.214:8091/rest/valclei/pedidovenda`;
@@ -75,7 +87,7 @@ export class SalesRequestsService {
   **********
   **********
   */
-  public GetSalesRequestsHeaderFields(): PoDynamicFormField[] {
+  public GetSalesRequestsHeaderFields(): any {
     return [
       {
         property: 'C5_CLIENTE',
@@ -188,7 +200,7 @@ export class SalesRequestsService {
             color: 'color-10'
           },
         ],
-        width: '150px'
+        width: '125px'
       },
       {
         property: 'orderNumber',
@@ -198,7 +210,7 @@ export class SalesRequestsService {
       {
         property: "customerCode",
         label: "Código do Cliente",
-        width: "150px"
+        width: "125px"
       },
       {
         property: "store",
@@ -214,22 +226,22 @@ export class SalesRequestsService {
         property: "issueDate",
         label: "Data de Emissão",
         type: 'date',
-        width: "150px"
+        width: "125px"
       },
       {
         property: "discount",
         label: "Desconto",
-        width: "150px"
+        width: "125px"
       },
       {
         property: "priceTable",
         label: "Tabela De Preço",
-        width: "150px"
+        width: "125px"
       },
       {
         property: "carrier",
         label: "Transportadora",
-        width: "150px"
+        width: "125px"
       },
       {
         property: "paymentCondition",
@@ -239,7 +251,7 @@ export class SalesRequestsService {
       {
         property: 'shippingMethod',
         label: 'Tipo De Frete',
-        width: '150px',
+        width: '125px',
         type: 'label',
         labels: [
           {
@@ -339,43 +351,53 @@ export class SalesRequestsService {
       {
         property: 'C6_ITEM',
         label: 'Item',
+        width: '125px'
       },
       {
         property: 'C6_PRODUTO',
-        label: 'Produto'
+        label: 'Produto',
+        width: '200px'
       },
       {
         property: 'C6_QTDVEN',
-        label: 'Qtde Vendida'
+        label: 'Qtde Vendida',
+        width: '130px'
       },
       {
         property: 'IT_PRCUNI',
-        label: 'Preço De Venda'
+        label: 'Preço De Venda',
+        width: '125px'
       },
       {
         property: 'IT_VALMERC',
-        label: 'Valor Da Mercadoria'
+        label: 'Valor Da Mercadoria',
+        width: '170px'
       },
       {
         property: 'IT_VALICM',
-        label: 'Valor ICM'
+        label: 'Valor ICM',
+        width: '130px'
       },
       {
         property: 'IT_VALSOL',
-        label: 'Valor Solidario'
+        label: 'Valor Solidario',
+        width: '125px'
       },
       {
         property: 'IT_VALIPI',
-        label: 'Valor IPI'
+        label: 'Valor IPI',
+        width: '130px'
       },
       {
         property: 'IT_DIFAL',
-        label: 'DIFAL'
+        label: 'DIFAL',
+        width: '100px'
       },
       {
         property: 'IT_SLDPROD',
-        label: 'Saldo Produto'
-      },
-    ];
+        label: 'Saldo Produto',
+        width: '140px'
+      }
+    ];    
   }
 }
