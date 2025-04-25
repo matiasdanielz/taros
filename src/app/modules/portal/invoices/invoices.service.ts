@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
+import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -9,7 +10,8 @@ import { environment } from 'src/environments/environment';
 export class InvoicesService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private cookieService: CookieService
   ) { }
 
 public GetInvoicesColumns(): PoTableColumn[]{
@@ -129,117 +131,155 @@ public GetInvoicesColumns(): PoTableColumn[]{
       {
         property: "id",
         label: "Nota",
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'serial',
         label: 'Serie',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: "customerStore",
         label: "Loja",
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: "customerId",
         label: "Id Cliente",
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: "customerName",
         label: "Cliente",
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: "issueDate",
         label: "Data Emissão",
         type: 'date',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: "totalValue",
         label: "Valor Total",
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'icmsBase',
         label: 'Base ICMS',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'icmsValue',
         label: 'Valor ICMS',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'ipiBase',
         label: 'Base IPI',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'ipiValue',
         label: 'Valor IPI',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'goodsValue',
         label: 'Valor Mercadorias',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'icmsRetained',
         label: 'ICMS Retido',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'netWeight',
         label: 'Peso Líquido',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'grossWeight',
         label: 'Peso Bruto',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'carrier',
         label: 'Transportadora',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'otherTaxBase',
         label: 'Base Outro Imposto',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'otherTaxValue1',
         label: 'Outro Imposto 1',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'otherTaxValue2',
         label: 'Outro Imposto 2',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'nfApprovalDate',
         label: 'Data Autorização',
         type: 'date',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'nfApprovalTime',
         label: 'Hora Autorização',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       }
-    ]
-  }  
+    ];    
+  }
 
-  public async GetInvoicesItems(page?: number, pageSize?: number, filter?: string): Promise<any[]>{    
+  public GetInvoicesItemsColumns(): PoTableColumn[]{
+    return [
+      {
+        property: 'D2_ITEM',
+        label: 'Item'
+      },
+      {
+        property: 'D2_PRODUTO',
+        label: 'Produto'
+      },
+      {
+        property: 'D2_QUANT',
+        label: 'Quantidade'
+      },
+    ];
+  }
+
+  public async GetInvoicesItems(filter?: string): Promise<any[]>{    
+    const salesmanId = this.cookieService.get('salesmanId');
     const url: string = `${environment.apiDomain}/invoices?`+
-      `page=${page}` + 
-      `&pageSize=${pageSize}` + 
+      `salesmanId=${salesmanId}` + 
       `&filter=${filter}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();

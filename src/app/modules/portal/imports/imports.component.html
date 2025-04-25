@@ -45,11 +45,26 @@
   <div
     class="po-text-center">
     <po-upload
-      [p-url]="'/api/upload/edi'"
+      #ediUploadComponent
+      p-url="..."
       [p-auto-upload]="false"
-      [p-restrictions]="{ maxFileSize: 1048576 }">
+      [p-restrictions]="{ maxFileSize: 1048576 }"
+      [p-hide-send-button]="true">
     </po-upload>
   </div>
+  <po-modal-footer
+    [p-disabled-align]="false">
+    <po-button
+      p-label="Cancelar"
+      p-kind="danger"
+      (p-click)="ediModal.close()">
+    </po-button>
+    <po-button
+      p-label="Importar"
+      p-kind="primary"
+      (p-click)="onUpload()">
+    </po-button>
+  </po-modal-footer>
 </po-modal>
 <!-- Modal de Importação por Excel -->
 <po-modal #excelModal p-title="Importação por Excel">

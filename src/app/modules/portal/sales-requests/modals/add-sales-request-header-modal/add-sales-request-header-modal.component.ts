@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import {
   PoDynamicFormComponent,
   PoModalComponent,
@@ -29,6 +29,8 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   @ViewChild('editSalesRequestItemModal', { static: true }) private editItemModal!: EditSalesRequestItemModalComponent;
   @ViewChild('addSalesRequestHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
   @ViewChild('salesRequestStepper', { static: true }) private stepperComponent!: PoStepperComponent;
+
+  @Output() onAdd = new EventEmitter<any>(); // <<< Aqui emitimos quando o item for criado
 
   protected salesRequestFields: any[] = [];
   protected salesRequestValue: any = {};
@@ -67,6 +69,7 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
     this.salesRequestValue = {};
     this.tableItems = [];
     this.currentStep = Step.Header;
+    this.stepperComponent.active(0);
     this.modalHeader.open();
   }
 
@@ -135,9 +138,7 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
     headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
     headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
     headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
-    headerData['C5_EMISSAO'] = headerData['C5_EMISSAO'] ?? '20250331';
-  
-    // Anexa os itens
+
     headerData['ITENS'] = this.tableItems;
   
     // Chama o serviço e espera a resposta
@@ -190,6 +191,7 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
       if (response?.codigo === 201) {
         this.modalHeader.close();
         this.poNotification.success('Registro Criado com Sucesso');
+        this.onAdd.emit();
       } else {
         this.poNotification.error(response?.mensagem || 'Erro ao criar pedido');
       }

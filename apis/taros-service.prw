@@ -2,8 +2,7 @@
 #include 'RestFul.ch'
 
 WSRESTFUL Taros Description "Taros"
-    WSDATA page as integer
-    WSDATA pageSize as integer
+    WSDATA id as string
     WSDATA filter as string
     WSDATA salesmanId as string
 
@@ -19,7 +18,6 @@ WSRESTFUL Taros Description "Taros"
     WSMETHOD GET salesman Description "Returns salesman" WSSYNTAX "/salesman" PATH "/salesman"
     WSMETHOD GET salesBudgets Description "Returns sales budgets" WSSYNTAX "/salesBudgets" PATH "/salesBudgets"
     WSMETHOD GET imports Description "Returns imports" WSSYNTAX "/imports" PATH "/imports"
-    WSMETHOD POST passwordRecovery Description "Send an emai for password recovery" WSSYNTAX "/passwordRecovery" PATH "/passwordRecovery"
 END WSRESTFUL
 
 WSMETHOD POST login WSRECEIVE WSSERVICE Taros
@@ -42,34 +40,32 @@ WSMETHOD GET customers WSRECEIVE salesmanId, filter WSSERVICE Taros
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetCustomers(cSalesmanId, cFilter)
+    jResponse := TarosController():GetCusts(cSalesmanId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET invoices WSRECEIVE page, pageSize, filter WSSERVICE Taros
-    local jResponse := JsonObject():New()
-    local nPage     := self:page
-    local nPageSize := self:pageSize
-    local cFilter   := self:filter
+WSMETHOD GET invoices WSRECEIVE salesmanId, filter WSSERVICE Taros
+    local jResponse   := JsonObject():New()
+    local cSalesmanId := self:salesmanId
+    local cFilter     := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetInvoices(nPage, nPageSize, cFilter)
+    jResponse := TarosController():GetInvc(cSalesmanId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
 
-WSMETHOD GET salesRequests WSRECEIVE page, pageSize, filter WSSERVICE Taros
+WSMETHOD GET salesRequests WSRECEIVE salesmanId, filter WSSERVICE Taros
     local jResponse := JsonObject():New()
-    local nPage     := self:page
-    local nPageSize := self:pageSize
+    local cSalesmanId := self:salesmanId
     local cFilter   := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetSalesRequests(nPage, nPageSize, cFilter)
+    jResponse := TarosController():GetSReqs(cSalesmanId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
@@ -81,52 +77,56 @@ WSMETHOD GET commissions WSRECEIVE salesmanId, filter WSSERVICE Taros
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetCommissions(cSalesmanId)
+    jResponse := TarosController():GetCommi(cSalesmanId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET payConditions WSRECEIVE filter WSSERVICE Taros
+WSMETHOD GET payConditions WSRECEIVE id, filter WSSERVICE Taros
     local jResponse := JsonObject():New()
+    local cId       := self:id
     local cFilter   := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetPayConditions("", "")
+    jResponse := TarosController():GetPayCnd(cId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
 
-WSMETHOD GET priceTables WSRECEIVE filter WSSERVICE Taros
+WSMETHOD GET priceTables WSRECEIVE id, filter WSSERVICE Taros
     local jResponse := JsonObject():New()
+    local cId   := self:id
     local cFilter   := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetPriceTables("", "")
+    jResponse := TarosController():GetPrTbl(cId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET products WSRECEIVE filter WSSERVICE Taros
+WSMETHOD GET products WSRECEIVE id, filter WSSERVICE Taros
     local jResponse := JsonObject():New()
+    local cId   := self:id
     local cFilter   := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetProducts("", cFilter)
+    jResponse := TarosController():GetProds(cId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET operations WSRECEIVE filter WSSERVICE Taros
+WSMETHOD GET operations WSRECEIVE id, filter WSSERVICE Taros
     local jResponse := JsonObject():New()
+    local cId   := self:id
     local cFilter   := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetOperations("", cFilter)
+    jResponse := TarosController():GetOps(cId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
@@ -137,40 +137,31 @@ WSMETHOD GET salesman WSRECEIVE salesmanId WSSERVICE Taros
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetSalesman(cSalesmanId)
+    jResponse := TarosController():GetSman(cSalesmanId)
 
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET salesBudgets WSRECEIVE filter WSSERVICE Taros
+WSMETHOD GET salesBudgets WSRECEIVE salesmanId, filter WSSERVICE Taros
     local jResponse   := JsonObject():New()
+    local cSalesmanId := self:salesmanId
     local cFilter   := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetSalesBudgets()
+    jResponse := TarosController():GetSBudg(cSalesmanId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET imports WSRECEIVE filter WSSERVICE Taros
+WSMETHOD GET imports WSRECEIVE salesmanId, filter WSSERVICE Taros
     local jResponse   := JsonObject():New()
-    local cFilter   := self:filter
+    local cSalesmanId := self:salesmanId
+    local cFilter     := self:filter
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetImports()
+    jResponse := TarosController():GetImpts(cSalesmanId, cFilter)
 
     self:setresponse(jResponse)
     return .t.
-
-WSMETHOD POST passwordRecovery WSSERVICE Taros
-    local jResponse   := JsonObject():New()
-
-    self:SetContentType('application/json')
-    
-    jResponse := TarosController():PostPasswordRecovery()
-
-    self:setresponse(jResponse)
-    return .t.
-

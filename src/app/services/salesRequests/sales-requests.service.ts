@@ -7,6 +7,7 @@ import { PaymentConditionsService } from '../paymentConditions/payment-condition
 import { PriceTablesService } from '../priceTables/price-tables.service';
 import { ProductsService } from '../products/products.service';
 import { OperationsService } from '../operations/operations.service';
+import { CookieService } from 'ngx-cookie-service';
 
 
 @Injectable({
@@ -17,10 +18,8 @@ export class SalesRequestsService {
   constructor(
     private http: HttpClient,
     private customersService: CustomersService,
-    private paymentConditionsService: PaymentConditionsService,
-    private priceTableService: PriceTablesService,
     private productsService: ProductsService,
-    private operationsService: OperationsService
+    private cookieService: CookieService
   ) { }
 
   public async GetSalesRequestTaxes(body: any) {
@@ -53,7 +52,7 @@ export class SalesRequestsService {
     const url: string = `http://200.229.234.214:8091/rest/valclei/pedidovenda`;
   
     try {
-      const response: any = await this.http.post(url, body, environment.header).toPromise();
+      const response: any = await this.http.put(url, body, environment.header).toPromise();
       return response;
     } catch (error: any) {
       const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
@@ -108,7 +107,8 @@ export class SalesRequestsService {
         ],
         required: true,
         showRequired: true,
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'C5_TPFRETE',
@@ -141,7 +141,8 @@ export class SalesRequestsService {
             label: 'Sem Frete'
           },
         ],
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'C5_MENNOTA',
@@ -167,37 +168,37 @@ export class SalesRequestsService {
           {
             value: 'emAberto',
             label: 'Em Aberto',
-            color: 'color-04'
+            color: 'color-10'
           },
           {
             value: 'encerrado',
             label: 'Encerrado',
-            color: 'color-05'
+            color: 'color-07'
           },
           {
             value: 'liberado',
             label: 'Liberado',
-            color: 'color-06'
+            color: 'color-08'
           },
           {
             value: 'bloqueadoPorRegra',
             label: 'Bloqueado Por Regra',
-            color: 'color-07'
+            color: 'color-01'
           },
           {
             value: 'bloqueadoPorVerba',
             label: 'Bloqueado Por Verba',
-            color: 'color-08'
+            color: 'color-09'
           },
           {
             value: 'bloqueadoPorEstoque',
             label: 'Bloqueado Por Estoque',
-            color: 'color-09'
+            color: 'color-05'
           },
           {
             value: 'naoIdentificado',
             label: 'Não Identificado',
-            color: 'color-10'
+            color: 'color-03'
           },
         ],
         width: '125px'
@@ -289,10 +290,10 @@ export class SalesRequestsService {
     ]
   }
 
-  public async GetSalesRequestsItems(page?: number, pageSize?: number, filter?: string): Promise<any[]> {
+  public async GetSalesRequestsItems(filter?: string): Promise<any[]> {
+    const salesmanId = this.cookieService.get('salesmanId');
     const url: string = `${environment.apiDomain}/salesRequests?` +
-      `page=${page}` +
-      `&pageSize=${pageSize}` +
+      `salesmanId=${salesmanId}` +
       `&filter=${filter}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();
@@ -315,7 +316,8 @@ export class SalesRequestsService {
         label: 'Item',
         readonly: true,
         visible: false,
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'C6_PRODUTO',
@@ -333,7 +335,8 @@ export class SalesRequestsService {
         ],
         required: true,
         showRequired: true,
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'C6_QTDVEN',
@@ -341,7 +344,8 @@ export class SalesRequestsService {
         type: 'number',
         required: true,
         showRequired: true,
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
     ];
   }

@@ -1,5 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
-import { PoModalComponent } from '@po-ui/ng-components';
+import { PoModalComponent, PoNotificationService } from '@po-ui/ng-components';
+import { ForgotPasswordService } from './forgot-password.service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -7,34 +8,33 @@ import { PoModalComponent } from '@po-ui/ng-components';
   styleUrls: ['./forgot-password.component.css']
 })
 export class ForgotPasswordComponent {
-  @ViewChild('forgotPasswordModal', {static: true}) private forgotPasswordModal!: PoModalComponent;
+  @ViewChild('forgotPasswordModal', { static: true }) private forgotPasswordModal!: PoModalComponent;
+  
+  public email: string = '';
+  
+  constructor(
+    private forgotPasswordService: ForgotPasswordService,
+    private poNotification: PoNotificationService
+  ){
 
-  recoveryOption: string = 'sms';
-phoneNumber: string = '';
-
-recoveryOptions = [
-  { label: 'e-mail', value: 'email' },
-  { label: 'SMS', value: 'sms' }
-];
-
-
-public openModal(){
-  this.forgotPasswordModal.open();
-}
-
-
-isFormValid(): boolean {
-  if (this.recoveryOption === 'sms') {
-    return !!this.phoneNumber && this.phoneNumber.length === 15; // Verifica se preencheu corretamente
   }
-  return false;
-}
 
-sendRecovery() {
-  if (this.isFormValid()) {
-    // Aqui você chama o serviço de recuperação
-    console.log('Enviando recuperação para:', this.phoneNumber);
+  public openModal() {
+    this.forgotPasswordModal.open();
   }
-}
+
+  protected async sendPasswordRecovery(){
+    const requestJson = {
+      "vendedor": this.email
+    };
+
+    const response: any = await this.forgotPasswordService.SendPasswordRecovery(requestJson);
+  
+    if(response['codigo'] == "400"){
+      this.poNotification.error(response['mensagem']);
+    }else{
+      this.poNotification.success(response['mensagem']);
+    }
+  }
 
 }

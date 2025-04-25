@@ -29,13 +29,14 @@ export class CustomersService {
   }
 
   getObjectByValue(value: string, filterParams: any){
+    const salesmanId = this.cookieService.get('salesmanId');
     const url: string = `${environment.apiDomain}/customers`;
     const filters = {
       "value": value
     }
 
     return this.http
-      .get(`${url}?value=${value}`)
+      .get(`${url}?filter=${value}&salesmanId=${salesmanId}`)
       .pipe(map((response: any) => response['items'][0]));
   }
 }

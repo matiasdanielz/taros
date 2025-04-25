@@ -2,7 +2,7 @@
 <!-- Modal De Inclusão De Cabeçalho -->
 <po-modal
     #addSalesBudgetHeaderModal
-    p-title="Criar Orçamento De Venda"
+    p-title="Editar Orçamento De Venda"
     p-size="xl"
     class="salesBudgetModal">
     <po-stepper
@@ -73,7 +73,7 @@
           *ngIf="currentStep === 2"
           p-label="Salvar"
           p-kind="primary"
-          (p-click)="createSalesBudget()"
+          (p-click)="saveSalesBudget()"
           [p-disabled]="isCreateButtonDisabled()">
         </po-button>
       </po-modal-footer>

@@ -1,10 +1,12 @@
 <!-- Modal De Inclusão de cabeçalho -->
 <app-add-sales-request-header-modal
-    #addSalesRequestHeaderModal>
+    #addSalesRequestHeaderModal
+    (onAdd)="LoadSalesRequests()">
 </app-add-sales-request-header-modal>
 <!-- Modal De Alteração Do Cabeçalho-->
 <app-edit-sales-request-header-modal
-    #editSalesRequestHeaderModal>
+    #editSalesRequestHeaderModal
+    (onEdit)="LoadSalesRequests()">
 </app-edit-sales-request-header-modal>
 <!-- Modal de confirmação de exclusão -->
 <app-delete-confirmation-modal

@@ -1,20 +1,21 @@
 <!-- Popup de download de notas fiscais -->
 <po-modal
-  #downloadsModal 
-  p-title="Baixar Nota Fiscal">
-  <div 
+  #downloadsModal
+  p-title="Baixar Nota Fiscal"
+  p-size="xl">
+  <div
     class="po-row po-mb-3 po-text-center">
-    <div 
+    <div
       class="po-md-12">
-      <po-icon 
-        p-icon="po-icon-download" 
+      <po-icon
+        p-icon="po-icon-download"
         class="download-icon">
       </po-icon>
-        <p 
-          class="po-text po-md-12">
-          Como você deseja baixar sua Nota Fiscal?
-        </p>
-      <small 
+      <p
+        class="po-text po-md-12">
+        Como você deseja baixar sua Nota Fiscal?
+      </p>
+      <small
         class="po-text-secondary">
         Escolha uma das opções abaixo para continuar.
       </small>
@@ -22,7 +23,7 @@
   </div>
 
   <po-modal-footer>
-    <po-button-group 
+    <po-button-group
       [p-buttons]="downloadButtons"
       class="po-md-12">
     </po-button-group>
@@ -39,18 +40,35 @@
     [p-sort]="true"
     [p-striped]="true"
     [p-columns]="invoicesColumns"
-    [p-items]="invoicesItems"
+    [p-items]="invoicesHeaderItems"
     [p-height]="tableHeight"
     [p-hide-text-overflow]="true"
     [p-actions]="tableActions">
   </po-table>
 </po-page-dynamic-search>
-<!-- Modal para ver detalhes --> 
- <po-modal
-    #invoiceInfoModal
-    p-title="Detalhes Da NF">
-    <po-dynamic-view
-        [p-fields]="invoicesFields"
-        [p-value]="currentInvoiceInView">
-    </po-dynamic-view>
- </po-modal>
+<!-- Modal para ver detalhes -->
+<po-modal
+  #invoiceInfoModal
+  p-title="Detalhes Da NF"
+  p-size="xl">
+  <po-divider
+    p-label="Cabeçalho">
+  </po-divider>
+  <po-dynamic-view
+    [p-fields]="invoicesFields"
+    [p-value]="currentInvoiceInView">
+  </po-dynamic-view>
+  <po-divider
+    p-label="Itens">
+  </po-divider>
+  <po-table
+    p-container="true"
+    [p-hide-columns-manager]="true"
+    [p-sort]="true"
+    [p-striped]="true"
+    [p-columns]="invoicesItemsColumns"
+    [p-items]="invoicesItems"
+    [p-height]="tableHeight / 1.5"
+    [p-hide-text-overflow]="true">
+  </po-table>
+</po-modal>

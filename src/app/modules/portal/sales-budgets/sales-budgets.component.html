@@ -1,19 +1,31 @@
+<!-- Modal De Inclusão de cabeçalho -->
+<app-add-sales-budget-header-modal
+    #addSalesBudgetHeaderModal>
+</app-add-sales-budget-header-modal>
+<!-- Modal De Alteração Do Cabeçalho-->
+<app-edit-sales-budget-header-modal
+    #editSalesBudgetHeaderModal>
+</app-edit-sales-budget-header-modal>
+<!-- Modal de confirmação de exclusão -->
+<app-delete-confirmation-modal
+    #deleteConfirmationModal
+    (onDelete)="DeleteItem()">
+</app-delete-confirmation-modal>
 <!-- Pagina Principal -->
 <po-page-dynamic-search
-  p-title="Orçamentos De Venda"
-  [p-actions]="pageActions">
-  <po-table
-    p-container="true"
-    [p-hide-columns-manager]="true"
-    [p-sort]="true"
-    [p-striped]="true"
-    [p-columns]="salesBudgetsColumns"
-    [p-items]="salesBudgetsItems"
-    [p-height]="tableHeight"
-    [p-hide-text-overflow]="true">
-  </po-table>
+    p-title="Orçamentos De Venda"
+    [p-actions]="pageActions"
+    (p-change-disclaimers)="onResetSearch()"
+    (p-quick-search)="onSearch($event)">
+    <po-table
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-columns]="salesBudgetsColumns"
+        [p-items]="salesBudgetsItems"
+        [p-height]="tableHeight"
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions">
+    </po-table>
 </po-page-dynamic-search>
-<!-- Modal para adicionar orçamento de venda-->
-<app-add-sales-budget-header-modal
-  #addSalesBudgetHeaderModal>
-</app-add-sales-budget-header-modal>

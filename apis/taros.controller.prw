@@ -6,18 +6,17 @@
 
 class TarosController from longclassname
     static method Login()
-    static method GetCustomers()
-    static method GetInvoices()
-    static method GetSalesRequests()
-    static method GetCommissions()
-    static method GetPayConditions()
-    static method GetPriceTables()
-    static method GetProducts()
-    static method GetOperations()
-    static method GetSalesman()
-    static method GetSalesBudgets()
-    static method GetImports()
-    static method PostPasswordRecovery()
+    static method GetCusts()
+    static method GetInvc()
+    static method GetSReqs()
+    static method GetCommi()
+    static method GetPayCnd()
+    static method GetPrTbl()
+    static method GetProds()
+    static method GetOps()
+    static method GetSman()
+    static method GetSBudg()
+    static method GetImpts()
 endclass
 
 static method Login(oLoginInfo) class TarosController
@@ -30,13 +29,13 @@ static method Login(oLoginInfo) class TarosController
 
     return oJsonResult
 
-static method GetCustomers(cSalesmanId, cFilter) class TarosController
+static method GetCusts(cSalesmanId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetCustomers(cSalesmanId, cFilter)
+    oJsonResult := oTarosModel:GetCusts(cSalesmanId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -46,13 +45,13 @@ static method GetCustomers(cSalesmanId, cFilter) class TarosController
     return oJsonResult
 
 
-static method GetInvoices(nPage, nPageSize, cFilter) class TarosController
+static method GetInvc(cSalesmanId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetInvoices(nPage, nPageSize, cFilter)
+    oJsonResult := oTarosModel:GetHInvc(cSalesmanId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -62,13 +61,13 @@ static method GetInvoices(nPage, nPageSize, cFilter) class TarosController
     return oJsonResult
 
 
-static method GetSalesRequests(nPage, nPageSize, cFilter) class TarosController
+static method GetSReqs(cSalesmanId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetSalesRequests(nPage, nPageSize, cFilter)
+    oJsonResult := oTarosModel:GetSReqs(cSalesmanId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -78,13 +77,13 @@ static method GetSalesRequests(nPage, nPageSize, cFilter) class TarosController
     return oJsonResult
 
 
-static method GetCommissions(cSalesmanId) class TarosController
+static method GetCommi(cSalesmanId) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetHeaderCommissions(cSalesmanId)
+    oJsonResult := oTarosModel:GetHComm(cSalesmanId)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -93,13 +92,13 @@ static method GetCommissions(cSalesmanId) class TarosController
 
     return oJsonResult
 
-static method GetPayConditions(cId, cFilter) class TarosController
+static method GetPayCnd(cId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetPayConditions(cId, cFilter)
+    oJsonResult := oTarosModel:GetPayCnd(cId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -108,13 +107,13 @@ static method GetPayConditions(cId, cFilter) class TarosController
 
     return oJsonResult
 
-static method GetPriceTables(cId, cFilter) class TarosController
+static method GetPrTbl(cId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetPriceTables(cId, cFilter)
+    oJsonResult := oTarosModel:GetPrTbl(cId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -123,13 +122,13 @@ static method GetPriceTables(cId, cFilter) class TarosController
 
     return oJsonResult
 
-static method GetProducts(cId, cFilter) class TarosController
+static method GetProds(cId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetProducts(cId, cFilter)
+    oJsonResult := oTarosModel:GetProds(cId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -139,13 +138,13 @@ static method GetProducts(cId, cFilter) class TarosController
     return oJsonResult
 
 
-static method GetOperations(cId, cFilter) class TarosController
+static method GetOps(cId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetOperations(cId, cFilter)
+    oJsonResult := oTarosModel:GetOps(cId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -154,13 +153,13 @@ static method GetOperations(cId, cFilter) class TarosController
 
     return oJsonResult
 
-static method GetSalesman(cSalesmanId) class TarosController
+static method GetSman(cSalesmanId) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetSalesman(cSalesmanId)
+    oJsonResult := oTarosModel:GetSman(cSalesmanId)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -169,13 +168,13 @@ static method GetSalesman(cSalesmanId) class TarosController
 
     return oJsonResult
 
-static method GetSalesBudgets() class TarosController
+static method GetSBudg(cSalesmanId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetSalesBudgets()
+    oJsonResult := oTarosModel:GetSBudg(cSalesmanId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
@@ -184,27 +183,17 @@ static method GetSalesBudgets() class TarosController
 
     return oJsonResult
 
-static method GetImports() class TarosController
+static method GetImpts(cSalesmanId, cFilter) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetImports()
+    oJsonResult := oTarosModel:GetImpts(cSalesmanId, cFilter)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'
         oJsonResult['response'] := 'No pay conditions found'
     endif
-
-    return oJsonResult
-
-static method PostPasswordRecovery() class TarosController
-    local oJsonResult := JsonObject():New()
-    local oTarosModel := JsonObject():New()
-
-    oTarosModel := TarosModel():New()
-
-    oJsonResult := oTarosModel:PostPasswordRecovery()
 
     return oJsonResult

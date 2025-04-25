@@ -1,8 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
 import { PoModalComponent, PoDynamicFormComponent, PoStepperComponent, PoTableColumn, PoTableAction, PoNotificationService } from '@po-ui/ng-components';
+import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
+import { AddSalesBudgetItemModalComponent } from '../add-sales-budget-item-modal/add-sales-budget-item-modal.component';
 import { EditSalesBudgetItemModalComponent } from '../edit-sales-budget-item-modal/edit-sales-budget-item-modal.component';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
-import { AddSalesBudgetItemModalComponent } from '../add-sales-budget-item-modal/add-sales-budget-item-modal.component';
 
 enum Step {
   Header = 0,
@@ -11,15 +12,15 @@ enum Step {
 }
 
 @Component({
-  selector: 'app-add-sales-budget-header-modal',
-  templateUrl: './add-sales-budget-header-modal.component.html',
-  styleUrls: ['./add-sales-budget-header-modal.component.css']
+  selector: 'app-edit-sales-budget-header-modal',
+  templateUrl: './edit-sales-budget-header-modal.component.html',
+  styleUrls: ['./edit-sales-budget-header-modal.component.css']
 })
-export class AddSalesBudgetHeaderModalComponent {
+export class EditSalesBudgetHeaderModalComponent {
   @ViewChild('addSalesBudgetHeaderModal', { static: true }) private modalHeader!: PoModalComponent;
   @ViewChild('addSalesBudgetItemModal', { static: true }) private addItemModal!: AddSalesBudgetItemModalComponent;
   @ViewChild('editSalesBudgetItemModal', { static: true }) private editItemModal!: EditSalesBudgetItemModalComponent;
-  @ViewChild('addSalesBudgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
+  @ViewChild('addSalesBydgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
   @ViewChild('salesBudgetStepper', { static: true }) private stepperComponent!: PoStepperComponent;
 
   protected salesBudgetFields: any[] = [];
@@ -55,12 +56,17 @@ export class AddSalesBudgetHeaderModalComponent {
     this.salesBudgetFields = this.salesBudgetsService.GetSalesBudgetsHeaderFields();
   }
 
-  public open(): void {
-    this.salesBudgetValue = {};
-    this.tableItems = [];
+  public async open(selectedItem: any): Promise<void> {
+    this.salesBudgetValue['CJ_CLIENTE'] = selectedItem['customerCode'];
+    this.salesBudgetValue['CJ_TPFRETE'] = selectedItem['shippingMethod'];
+    this.salesBudgetValue['CJ_MENNOTA'] = selectedItem['shippingMethod'];
+
+    this.tableItems = selectedItem['items'];
     this.currentStep = Step.Header;
+    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
     this.modalHeader.open();
   }
+
 
   public cancel(): void {
     this.modalHeader.close();
@@ -105,55 +111,55 @@ export class AddSalesBudgetHeaderModalComponent {
       return '01';
     }
 
-    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['C6_ITEM'], 10) || 0));
+    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['CK_ITEM'], 10) || 0));
     return (maxItem + 1).toString().padStart(2, '0');
   }
 
   public async onSalesBudgetItemCreated(item: any): Promise<void> {
-    // Adiciona o item à lista
     this.tableItems = [...this.tableItems, item];
+    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
+  }
 
-    // Clona os dados do cabeçalho
+
+  private async calculateTaxesForItems(): Promise<void> {
     const headerData = { ...this.salesBudgetValue };
 
-    // Formata a data (se necessário)
-    if (headerData['C5_EMISSAO']) {
-      headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
+    // Formata a data, se existir
+    if (headerData['CJ_EMISSAO']) {
+      headerData['CJ_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['CJ_EMISSAO']);
     }
 
     // Define campos obrigatórios
     headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
-    headerData['C5_LOJACLI'] = '01';
-    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
-    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
-    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
-    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
-    headerData['C5_EMISSAO'] = headerData['C5_EMISSAO'] ?? '20250331';
+    headerData['CJ_LOJACLI'] = '01';
+    headerData['CJ_TABELA'] = headerData['CJ_TABELA'] ?? '999';
+    headerData['CJ_TIPO'] = headerData['CJ_TIPO'] ?? 'N';
+    headerData['CJ_TPFRETE'] = headerData['CJ_TPFRETE'] ?? 'C';
+    headerData['CJ_CONDPAG'] = headerData['CJ_CONDPAG'] ?? '002';
+    headerData['CJ_EMISSAO'] = headerData['CJ_EMISSAO'] ?? '20250331';
 
     // Anexa os itens
     headerData['ITENS'] = this.tableItems;
 
-    // Chama o serviço e espera a resposta
     const response: any = await this.salesBudgetsService.GetSalesBudgetTaxes(headerData);
 
-    // Atualiza os itens da tabela com os dados retornados
     if (response && Array.isArray(response.ITENS)) {
       const updatedItems = this.tableItems.map((originalItem) => {
         const matchedItem = response.ITENS.find(
-          (resItem: any) => resItem['IT_ITEM'] === originalItem['C6_ITEM']
+          (resItem: any) => resItem['IT_ITEM'] === originalItem['CK_ITEM']
         );
         return matchedItem ? { ...originalItem, ...matchedItem } : originalItem;
       });
 
-      this.tableItems = [];
       this.tableItems = updatedItems;
       this.salesBudgetValue = headerData;
     }
   }
 
+
   public onSalesBudgetItemEdited(item: any): void {
     this.tableItems = this.tableItems.map(existing =>
-      existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing
+      existing['CK_ITEM'] === item['CK_ITEM'] ? item : existing
     );
   }
 
@@ -165,7 +171,7 @@ export class AddSalesBudgetHeaderModalComponent {
   private renumberItems(): void {
     this.tableItems = this.tableItems.map((item, index) => ({
       ...item,
-      C6_ITEM: (index + 1).toString().padStart(2, '0')
+      CK_ITEM: (index + 1).toString().padStart(2, '0')
     }));
   }
 
@@ -174,17 +180,17 @@ export class AddSalesBudgetHeaderModalComponent {
     return isFormInvalid || this.tableItems.length === 0;
   }
 
-  protected async createSalesBudget(): Promise<void> {
+  protected async saveSalesBudget(): Promise<void> {
     const payload = this.buildSalesBudgetPayload();
 
     try {
-      const response = await this.salesBudgetsService.PostSalesBudget(payload);
+      const response = await this.salesBudgetsService.PutSalesBudget(payload);
 
       if (response?.codigo === 201) {
         this.modalHeader.close();
-        this.poNotification.success('Registro Criado com Sucesso');
+        this.poNotification.success('Registro Editado com Sucesso');
       } else {
-        this.poNotification.error(response?.mensagem || 'Erro ao criar pedido');
+        this.poNotification.error(response?.mensagem || 'Erro ao Editar pedido');
       }
     } catch (error) {
       this.poNotification.error('Erro na requisição. Tente novamente mais tarde.');
@@ -194,12 +200,18 @@ export class AddSalesBudgetHeaderModalComponent {
   private buildSalesBudgetPayload(): any {
     const payload = { ...this.salesBudgetValue };
 
-    if (payload['C5_EMISSAO']) {
-      payload['C5_EMISSAO'] = this.formatDateToYYYYMMDD(payload['C5_EMISSAO']);
+    if (payload['CJ_EMISSAO']) {
+      payload['CJ_EMISSAO'] = this.formatDateToYYYYMMDD(payload['CJ_EMISSAO']);
     }
 
-    payload['C5_LOJACLI'] = '01';
-    payload['ITENS'] = this.tableItems;
+    payload['CJ_LOJACLI'] = '01';
+
+    // Adiciona os campos fixos a cada item
+    payload['ITENS'] = this.tableItems.map(item => ({
+      ...item,
+      LINPOS: '01',
+      AUTDELETA: 'N'
+    }));
 
     return payload;
   }

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
+import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -9,7 +10,8 @@ import { environment } from 'src/environments/environment';
 export class ImportsService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private cookieService: CookieService
   ) { }
 
   public GetImportsFields(): PoDynamicViewField[] {
@@ -17,57 +19,68 @@ export class ImportsService {
       {
         property: 'salesOrder',
         label: 'Pedido de Venda',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'date',
         label: 'Data',
         type: 'date',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'status',
         label: 'Status',
         gridColumns: 6,
+        gridSmColumns: 12,
         tag: true
       },
       {
         property: 'cnpj',
         label: 'CNPJ',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'priceTable',
         label: 'Tabela de Preço',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'paymentCondition',
         label: 'Cond. Pagamento',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'discountPercent',
         label: '% Desconto',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'purchaseOrder',
         label: 'Pedido de Compra',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'issueDate',
         label: 'Data Emissão',
         type: 'date',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'fileName',
         label: 'Arquivo',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       }
     ];
+    
   }  
 
   public GetImportsColumns(): PoTableColumn[]{
@@ -140,11 +153,20 @@ export class ImportsService {
     ];
   }
 
-  public async GetImportsItems(): Promise<any[]>{    
-    const url: string = `${environment.apiDomain}/imports?`;
+  public async GetImportsItems(): Promise<any[]>{
+    const salesmanId = this.cookieService.get('salesmanId');
+    const url: string = `${environment.apiDomain}/imports?salesmanId=${salesmanId}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();
     
     return response['items'];
-  } 
+  }
+
+  public async PostImportItem(importItem: any): Promise<any>{
+    const url: string = `http://200.229.234.214:8091/rest/valclei/integracao`;
+
+    const response: any = await this.http.post(url, importItem,environment.header).toPromise();
+    
+    return response;
+  }
 }

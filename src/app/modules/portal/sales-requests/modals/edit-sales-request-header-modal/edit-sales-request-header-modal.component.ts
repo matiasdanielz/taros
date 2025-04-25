@@ -1,5 +1,17 @@
-import { Component, ViewChild } from '@angular/core';
-import { PoModalComponent, PoDynamicFormComponent, PoStepperComponent, PoTableColumn, PoTableAction, PoNotificationService } from '@po-ui/ng-components';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  ViewChild
+} from '@angular/core';
+import {
+  PoModalComponent,
+  PoDynamicFormComponent,
+  PoStepperComponent,
+  PoTableColumn,
+  PoTableAction,
+  PoNotificationService
+} from '@po-ui/ng-components';
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { AddSalesRequestItemModalComponent } from '../add-sales-request-item-modal/add-sales-request-item-modal.component';
 import { EditSalesRequestItemModalComponent } from '../edit-sales-request-item-modal/edit-sales-request-item-modal.component';
@@ -22,10 +34,13 @@ export class EditSalesRequestHeaderModalComponent {
   @ViewChild('addSalesRequestHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
   @ViewChild('salesRequestStepper', { static: true }) private stepperComponent!: PoStepperComponent;
 
+  @Output() onEdit = new EventEmitter<any>();
+
   protected salesRequestFields: any[] = [];
   protected salesRequestValue: any = {};
   protected tableColumns: PoTableColumn[] = [];
   protected tableItems: any[] = [];
+  protected removedItemsFromTableItems: any[] = [];
 
   protected currentStep: Step = Step.Header;
 
@@ -56,16 +71,17 @@ export class EditSalesRequestHeaderModalComponent {
   }
 
   public async open(selectedItem: any): Promise<void> {
-    this.salesRequestValue['C5_CLIENTE'] = selectedItem['customerCode'];
-    this.salesRequestValue['C5_TPFRETE'] = selectedItem['shippingMethod'];
-    this.salesRequestValue['C5_MENNOTA'] = selectedItem['shippingMethod'];
-  
+    this.salesRequestValue = {
+      C5_NUM: selectedItem['orderNumber'],
+      C5_CLIENTE: selectedItem['customerCode'],
+      C5_TPFRETE: selectedItem['shippingMethod']
+    };
+
     this.tableItems = selectedItem['items'];
     this.currentStep = Step.Header;
-    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
+    await this.calculateTaxesForItems();
     this.modalHeader.open();
   }
-  
 
   public cancel(): void {
     this.modalHeader.close();
@@ -115,62 +131,23 @@ export class EditSalesRequestHeaderModalComponent {
   }
 
   public async onSalesRequestItemCreated(item: any): Promise<void> {
+    item.__isNew = true;
     this.tableItems = [...this.tableItems, item];
-    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
+    await this.calculateTaxesForItems();
   }
-  
 
-  private async calculateTaxesForItems(): Promise<void> {
-    const headerData = { ...this.salesRequestValue };
-  
-    // Formata a data, se existir
-    if (headerData['C5_EMISSAO']) {
-      headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
-    }
-  
-    // Define campos obrigatórios
-    headerData['C5_LOJACLI'] = '01';
-    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
-    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
-    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
-    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
-    headerData['C5_EMISSAO'] = headerData['C5_EMISSAO'] ?? '20250331';
-  
-    // Anexa os itens
-    headerData['ITENS'] = this.tableItems;
-  
-    const response: any = await this.salesRequestsService.GetSalesRequestTaxes(headerData);
-  
-    if (response && Array.isArray(response.ITENS)) {
-      const updatedItems = this.tableItems.map((originalItem) => {
-        const matchedItem = response.ITENS.find(
-          (resItem: any) => resItem['IT_ITEM'] === originalItem['C6_ITEM']
-        );
-        return matchedItem ? { ...originalItem, ...matchedItem } : originalItem;
-      });
-  
-      this.tableItems = updatedItems;
-      this.salesRequestValue = headerData;
-    }
-  }
-  
-
-  public onSalesRequestItemEdited(item: any): void {
+  public async onSalesRequestItemEdited(item: any): Promise<void> {
     this.tableItems = this.tableItems.map(existing =>
       existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing
     );
+    await this.calculateTaxesForItems();
   }
 
   private removeItem(itemToRemove: any): void {
+    itemToRemove['LINPOS'] = itemToRemove['C6_ITEM'];
+    itemToRemove['AUTDELETA'] = 'S';
+    this.removedItemsFromTableItems.push(itemToRemove);
     this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
-    this.renumberItems();
-  }
-
-  private renumberItems(): void {
-    this.tableItems = this.tableItems.map((item, index) => ({
-      ...item,
-      C6_ITEM: (index + 1).toString().padStart(2, '0')
-    }));
   }
 
   protected isCreateButtonDisabled(): boolean {
@@ -187,6 +164,8 @@ export class EditSalesRequestHeaderModalComponent {
       if (response?.codigo === 201) {
         this.modalHeader.close();
         this.poNotification.success('Registro Editado com Sucesso');
+        this.removedItemsFromTableItems = [];
+        this.onEdit.emit();
       } else {
         this.poNotification.error(response?.mensagem || 'Erro ao Editar pedido');
       }
@@ -197,22 +176,26 @@ export class EditSalesRequestHeaderModalComponent {
 
   private buildSalesRequestPayload(): any {
     const payload = { ...this.salesRequestValue };
-  
+
     if (payload['C5_EMISSAO']) {
       payload['C5_EMISSAO'] = this.formatDateToYYYYMMDD(payload['C5_EMISSAO']);
     }
-  
+
     payload['C5_LOJACLI'] = '01';
-  
-    // Adiciona os campos fixos a cada item
-    payload['ITENS'] = this.tableItems.map(item => ({
-      ...item,
-      LINPOS: '01',
-      AUTDELETA: 'N'
-    }));
-  
+
+    const currentItems = this.tableItems.map(item => {
+      const newItem = { ...item };
+      if (!newItem.__isNew) {
+        newItem.LINPOS = item['C6_ITEM'];
+        newItem.AUTDELETA = 'N';
+      }
+      return newItem;
+    });
+
+    payload['ITENS'] = [...currentItems, ...this.removedItemsFromTableItems];
+
     return payload;
-  }  
+  }
 
   private formatDateToYYYYMMDD(dateInput: string | Date): string {
     const date = new Date(dateInput);
@@ -220,5 +203,35 @@ export class EditSalesRequestHeaderModalComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}${month}${day}`;
+  }
+
+  private async calculateTaxesForItems(): Promise<void> {
+    const headerData = { ...this.salesRequestValue };
+
+    if (headerData['C5_EMISSAO']) {
+      headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
+    }
+
+    headerData['C5_LOJACLI'] = '01';
+    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
+    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
+    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
+    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
+    headerData['ITENS'] = this.tableItems;
+
+    const response: any = await this.salesRequestsService.GetSalesRequestTaxes(headerData);
+
+    if (response && Array.isArray(response.ITENS)) {
+      const updatedItems = [];
+
+      for (let i = 0; i < this.tableItems.length; i++) {
+        const originalItem = this.tableItems[i];
+        const updatedItem = response.ITENS[i];
+        updatedItems.push({ ...originalItem, ...updatedItem });
+      }
+
+      this.tableItems = updatedItems;
+      this.salesRequestValue = headerData;
+    }
   }
 }

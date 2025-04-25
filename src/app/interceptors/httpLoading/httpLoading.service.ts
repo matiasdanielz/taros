@@ -1,10 +1,10 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { finalize, Observable } from 'rxjs';
-import { LoadingOverlayService } from '../genericComponents/loading-overlay/loading-overlay.service';
+import { LoadingOverlayService } from '../../genericComponents/loading-overlay/loading-overlay.service';
 
 @Injectable()
-export class HttpService implements HttpInterceptor{
+export class HttpLoadingService implements HttpInterceptor{
 
   constructor(
     private loadingOverlayService: LoadingOverlayService

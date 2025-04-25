@@ -1,15 +1,17 @@
-po-modal[class="salesRequestModal"] .po-modal-body{
+po-modal .po-modal-body {
     max-width: 95vw;
 }
 
-po-modal[class="salesRequestModal"] .po-modal-content {
+po-modal .po-modal-content {
     max-width: 95vw;
 }
 
-po-modal[class="salesRequestModal"] .po-modal-xl{
-    width: 75%;
+po-modal .po-modal-xl {
+    width: 90%;
 }
 
-#salesRequestStepper .po-stepper-container {
-    pointer-events: none !important;
+@media screen and (min-width: 992px) {
+    po-modal .po-modal-xl {
+        width: 75%;
+    }
 }

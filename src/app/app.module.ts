@@ -5,8 +5,9 @@ import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpService } from './interceptors/http.service';
+import { HttpLoadingService } from './interceptors/httpLoading/httpLoading.service';
 import { GenericComponentsModule } from './genericComponents/generic-components.module';
+import { HttpAuthService } from './interceptors/httpAuth/http-auth.service';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { GenericComponentsModule } from './genericComponents/generic-components.
     GenericComponentsModule
   ],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: HttpService, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: HttpLoadingService, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: HttpAuthService, multi: true },
   ],
   bootstrap: [AppComponent]
 })

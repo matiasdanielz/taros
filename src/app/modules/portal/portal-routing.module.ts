@@ -6,14 +6,23 @@ import { SalesRequestsComponent } from './sales-requests/sales-requests.componen
 import { InvoicesComponent } from './invoices/invoices.component';
 import { ProfileComponent } from './profile/profile.component';
 import { CommissionsComponent } from './commissions/commissions.component';
-import { SalesBudgetsComponent } from './sales-budgets/sales-budgets.component';
 import { ImportsComponent } from './imports/imports.component';
+import { SalesBudgetsComponent } from './sales-budgets/sales-budgets.component';
+import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
   {
     path: '',
     component: PortalComponent,
     children: [
+      {
+        path: '',
+        redirectTo: 'Home'
+      },
+      {
+        path: 'Home',
+        component: HomeComponent
+      },
       {
         path: 'Customers',
         component: CustomersComponent

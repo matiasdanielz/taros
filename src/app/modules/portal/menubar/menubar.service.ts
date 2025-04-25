@@ -17,6 +17,11 @@ export class MenubarService {
   public getMenubarItems(): PoMenuItem[]{
     return [
       {
+        label: 'Home',
+        link: 'Home',
+        icon: 'po-icon-home'
+      },
+      {
         label: 'Clientes',
         icon: 'po-icon-users',
         link: 'Customers'
@@ -59,8 +64,8 @@ export class MenubarService {
     ];
   }
 
-  private LogOut(){
-    this.router.navigate(['/Authentication']);
+  private async LogOut(){
     this.cookieService.deleteAll();
+    await this.router.navigate(['/Authentication']);
   }
 }

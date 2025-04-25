@@ -2,18 +2,17 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoDynamicViewField, PoTableColumn, PoTableDetail } from '@po-ui/ng-components';
 import { last } from 'lodash';
+import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CommissionsService {
-  GetCommissionsHeaderItems(): any[] | PromiseLike<any[]> {
-    throw new Error('Method not implemented.');
-  }
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private cookieService: CookieService
   ) { }
 
   public GetCommissionsHeaderFields(): PoDynamicViewField[]{
@@ -21,12 +20,14 @@ export class CommissionsService {
       {
         property: 'year',
         label: 'Ano',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
       {
         property: 'monthLabel',
         label: 'Mês',
-        gridColumns: 6
+        gridColumns: 6,
+        gridSmColumns: 12
       },
     ];
   }
@@ -145,7 +146,8 @@ export class CommissionsService {
   }
 
   public async GetCommissionsItems(): Promise<any[]>{
-    const url: string = `${environment.apiDomain}/commissions?`;
+    const salesmanId = this.cookieService.get('salesmanId');
+    const url: string = `${environment.apiDomain}/commissions?salesmanId=${salesmanId}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();
     

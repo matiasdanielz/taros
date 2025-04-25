@@ -33,13 +33,13 @@ export class CustomersService {
         labels: [
           {
             value: '1',
-            label: 'Ativo',
-            color: 'color-06'
+            label: 'Inativo',
+            color: 'color-07'
           },
           {
             value: '2',
-            label: 'Inativo',
-            color: 'color-07'
+            label: 'Ativo',
+            color: 'color-10'
           }
         ]
       },
@@ -167,104 +167,122 @@ export class CustomersService {
       {
         property: 'id',
         label: 'Código',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'store',
         label: 'Loja',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'status',
         label: 'Status',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12,
         type: 'label',
         tag: true
       },
       {
         property: 'name',
         label: 'Nome',
-        gridColumns: 6
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'fantasyName',
         label: 'Nome Reduzido',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'type',
         label: 'Tipo de Cliente',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12,
         tag: true
       },
       {
         property: 'person',
         label: 'Pessoa (F/J)',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12,
         tag: true
       },
       {
         property: 'brazilianTaxId',
         label: 'CNPJ/CPF',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'stateInscription',
         label: 'Inscrição Estadual',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'adress',
         label: 'Endereço',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'neighborhood',
         label: 'Bairro',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'city',
         label: 'Cidade',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'state',
         label: 'Estado',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'zip',
         label: 'CEP',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'phone',
         label: 'Telefone',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'email',
         label: 'E-mail',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'paymentCondition',
         label: 'Cond. Pagamento',
-        gridColumns: 6,
+        gridColumns: 4,
+        gridSmColumns: 12
       },
       {
         property: 'priceTable',
         label: 'Tabela de Preço',
-        gridColumns: 6,
-      }    
+        gridColumns: 4,
+        gridSmColumns: 12
+      }
     ];
+    
   }
 
 
   public async GetCustomersItems(filter?: string): Promise<any[]>{ 
     const salesmanId = this.cookieService.get('salesmanId');
-    
     const url: string = `${environment.apiDomain}/customers?`+
       `&salesmanId=${salesmanId}` + 
       `&filter=${filter}`;

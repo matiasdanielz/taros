@@ -1,11 +1,10 @@
-<!-- Modal De Inclusão -->
 <po-modal
-    #addSalesBudgetItemModal
-    p-title="Criar Item Do Orçamento De Venda"
+    #editSalesBudgetModal
+    p-title="Editar Item Do Orçamento De Venda"
     p-size="xl"
     class="createSalesBudgetModal">
     <po-dynamic-form
-        #salesBudgetAddForm
+        #salesBudgetEditForm
         [p-fields]="salesBudgetsFields"
         [p-value]="salesBudgetValue">
     </po-dynamic-form>
@@ -14,13 +13,13 @@
         <po-button
             [p-danger]="true"
             p-label="Cancelar"
-            (p-click)="addSalesBudgetItemModal.close()">
+            (p-click)="editSalesBudgetModal.close()">
         </po-button>
         <po-button
             p-kind="primary"
             p-label="Confirmar"
-            (p-click)="OnCreateSalesBudgetItem()"
-            [p-disabled]="salesBudgetAddForm.form.invalid!">
+            (p-click)="OnEditSalesBudgetItem()"
+            [p-disabled]="salesBudgetEditForm.form.invalid!">
         </po-button>
     </po-modal-footer>
 </po-modal>

@@ -3,14 +3,14 @@ import { PoModalComponent, PoDynamicFormField } from '@po-ui/ng-components';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 
 @Component({
-  selector: 'app-add-sales-budget-item-modal',
-  templateUrl: './add-sales-budget-item-modal.component.html',
-  styleUrls: ['./add-sales-budget-item-modal.component.css']
+  selector: 'app-edit-sales-budget-item-modal',
+  templateUrl: './edit-sales-budget-item-modal.component.html',
+  styleUrls: ['./edit-sales-budget-item-modal.component.css']
 })
-export class AddSalesBudgetItemModalComponent {
-  @ViewChild('addSalesBudgetItemModal', {static: true}) addSalesBudgetItemModal!: PoModalComponent;
+export class EditSalesBudgetItemModalComponent {
+  @ViewChild('editSalesBudgetModal', {static: true}) editSalesBudgetModal!: PoModalComponent;
 
-  @Output() itemCreated = new EventEmitter<any>(); // <<< Aqui emitimos quando o item for criado
+  @Output() itemEdited = new EventEmitter<any>(); // <<< Aqui emitimos quando o item for criado
 
   //Cadastro
   protected salesBudgetsFields: PoDynamicFormField[] = [];
@@ -22,19 +22,19 @@ export class AddSalesBudgetItemModalComponent {
     this.salesBudgetsFields = salesBudgetsService.GetSalesBudgetsItemsFields();
   }
 
-  public open(item: string){
-    this.salesBudgetValue['C6_ITEM'] = item;
-
-    this.addSalesBudgetItemModal.open();
+  public open(itemToEdit: any){
+    this.salesBudgetValue = itemToEdit;
+    this.editSalesBudgetModal.open();
   }
 
-  public OnCreateSalesBudgetItem() {
+  public OnEditSalesBudgetItem() {
+    // Aqui você pode processar ou validar os dados
 
     // Emite o item criado para o componente pai
-    this.itemCreated.emit(this.salesBudgetValue);
+    this.itemEdited.emit(this.salesBudgetValue);
 
     // Fecha o modal, se quiser
-    this.addSalesBudgetItemModal.close();
+    this.editSalesBudgetModal.close();
 
     // Limpa o formulário, se necessário
     this.salesBudgetValue = {};
