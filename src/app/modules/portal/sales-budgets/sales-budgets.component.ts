@@ -1,10 +1,10 @@
 import { Component, ViewChild } from '@angular/core';
-import { PoTableAction, PoTableColumn, PoDynamicViewField, PoNotificationService } from '@po-ui/ng-components';
+import { PoTableAction, PoTableColumn, PoDynamicViewField, PoNotificationService, PoModalComponent } from '@po-ui/ng-components';
 import { DeleteConfirmationModalComponent } from 'src/app/genericComponents/delete-confirmation-modal/delete-confirmation-modal.component';
-import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { AddSalesBudgetHeaderModalComponent } from './modals/add-sales-budget-header-modal/add-sales-budget-header-modal.component';
 import { EditSalesBudgetHeaderModalComponent } from './modals/edit-sales-budget-header-modal/edit-sales-budget-header-modal.component';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-sales-budgets',
@@ -12,11 +12,13 @@ import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets
   styleUrls: ['./sales-budgets.component.css']
 })
 export class SalesBudgetsComponent {
+  // ViewChilds
   @ViewChild('addSalesBudgetHeaderModal', { static: true }) addSalesBudgetHeaderModal!: AddSalesBudgetHeaderModalComponent;
   @ViewChild('editSalesBudgetHeaderModal', { static: true }) editSalesBudgetHeaderModal!: EditSalesBudgetHeaderModalComponent;
   @ViewChild('deleteConfirmationModal', { static: true }) deleteConfirmationModal!: DeleteConfirmationModalComponent;
+  @ViewChild('salesBudgetAprovalModal', { static: true }) salesBudgetAprovalModal!: PoModalComponent;
 
-  //Parametros da pagina
+  // Ações da Página
   protected pageActions: PoTableAction[] = [
     {
       label: 'Adicionar',
@@ -24,59 +26,95 @@ export class SalesBudgetsComponent {
     },
   ];
 
-  //Parametros Da Tabela
-  protected tableHeight: number = window.innerHeight / 1.5;
+  // Ações da Tabela
   protected tableActions: PoTableAction[] = [
+    {
+      label: 'Aprovar Orçamento',
+      icon: 'po-icon-ok',
+      action: this.openSalesBudgetAprovalModal.bind(this)
+    },
     {
       label: 'Editar',
       icon: 'po-icon-edit',
-      action: this.OpenSalesBudgetEditModal.bind(this)
+      separator: true,
+      action: this.openSalesBudgetEditModal.bind(this)
     },
     {
       label: 'Excluir',
       icon: 'po-icon-delete',
       type: 'danger',
-      action: this.OpenDeleteConfirmationModal.bind(this)
+      action: this.openDeleteConfirmationModal.bind(this)
     }
   ];
 
-  //Itens Da Tabela De Clientes
+  // Parâmetros da Tabela
+  protected tableHeight: number = window.innerHeight / 1.5;
   protected salesBudgetsColumns: PoTableColumn[] = [];
   protected salesBudgetsItems: any[] = [];
+
+  // Campos de Visualização
   protected salesBudgetsFields: PoDynamicViewField[] = [];
   protected currentSalesBudgetInView: any = {};
   protected selectedItemToDelete: any = {};
+
+  // Controle de Paginação e Filtro
   protected page: number = 0;
   protected pageSize: number = 12;
   protected filter: string = '';
 
+
+  // Serviços
   constructor(
     private salesBudgetsService: SalesBudgetsService,
-    private poNotification: PoNotificationService
+    private poNotification: PoNotificationService,
+    private cookieService: CookieService
   ) {
-    this.salesBudgetsColumns = salesBudgetsService.GetSalesBudgetsHeaderColumns();
-    this.salesBudgetsFields = salesBudgetsService.GetSalesBudgetsHeaderFields();
+    this.salesBudgetsColumns = this.salesBudgetsService.GetSalesBudgetsHeaderColumns();
+    this.salesBudgetsFields = this.salesBudgetsService.GetSalesBudgetsHeaderFields();
   }
 
+  // Ciclo de Vida
   async ngOnInit(): Promise<void> {
-    await this.LoadSalesBudgets();
+    await this.loadSalesBudgets();
   }
 
-  protected async LoadSalesBudgets() {
+  // Métodos de Ação
+  protected async loadSalesBudgets(): Promise<void> {
     this.salesBudgetsItems = await this.salesBudgetsService.GetSalesBudgetsItems(this.filter);
   }
 
-  protected OpenSalesBudgetEditModal(selectedItem: any) {
+  protected openSalesBudgetEditModal(selectedItem: any): void {
     this.editSalesBudgetHeaderModal.open(selectedItem);
   }
 
-  protected OpenDeleteConfirmationModal(selectedItem: any) {
+  protected openDeleteConfirmationModal(selectedItem: any): void {
     this.selectedItemToDelete = selectedItem;
-
     this.deleteConfirmationModal.open();
   }
 
-  protected async DeleteItem() {
+  protected openSalesBudgetAprovalModal(selectedItem: any) {
+    this.currentSalesBudgetInView = selectedItem;
+    this.salesBudgetAprovalModal.open();
+  }
+
+  protected async aproveSalesBudget() {
+    const salesmanId = this.cookieService.get('salesmanId');
+    const requestJson = {
+      "vendedor": salesmanId,
+      "CJ_NUM": this.currentSalesBudgetInView['orderNumber']
+    };
+
+    const response: any = await this.salesBudgetsService.AproveSalesBudget(requestJson);
+
+    if(response['codigo'] == 201){
+      this.poNotification.success(response['Registro Aprovado Com Sucesso']);
+      this.salesBudgetAprovalModal.close();
+    }else{
+      this.poNotification.error(response['mensagem']);
+    }
+  }
+
+  protected async deleteItem(): Promise<void> {
     const requestJson = {
       "C5_CLIENTE": this.selectedItemToDelete['customerCode'],
       "C5_LOJACLI": this.selectedItemToDelete['store'],
@@ -85,27 +123,28 @@ export class SalesBudgetsComponent {
 
     const response: any = await this.salesBudgetsService.DeleteSalesBudget(requestJson);
 
-    if (response['codigo'] == "201") {
+    if (response['codigo'] === "201") {
       this.poNotification.success("Item deletado");
       this.deleteConfirmationModal.close();
     } else {
       this.poNotification.error("Houve um erro na exclusão do item");
     }
 
-    this.LoadSalesBudgets();
+    this.loadSalesBudgets();
   }
 
-  protected onSearch(filter: string): any {
+  // Métodos de Pesquisa
+  protected onSearch(filter: string): void {
     this.page = -1;
     this.salesBudgetsItems = [];
-    this.filter = filter
-    this.LoadSalesBudgets()
+    this.filter = filter;
+    this.loadSalesBudgets();
   }
 
-  protected onResetSearch(): any {
+  protected onResetSearch(): void {
     this.page = -1;
     this.salesBudgetsItems = [];
-    this.filter = ''
-    this.LoadSalesBudgets()
+    this.filter = '';
+    this.loadSalesBudgets();
   }
 }

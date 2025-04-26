@@ -9,8 +9,25 @@
 <!-- Modal de confirmação de exclusão -->
 <app-delete-confirmation-modal
     #deleteConfirmationModal
-    (onDelete)="DeleteItem()">
+    (onDelete)="deleteItem()">
 </app-delete-confirmation-modal>
+<!-- Modal Para aprovar orçamento-->
+<po-modal
+    #salesBudgetAprovalModal
+    p-title="Aprovar Orçamento">
+    <p style="padding: 16px;">
+        Tem certeza que deseja aprovar o orçamento <strong>{{ currentSalesBudgetInView?.orderNumber}} 
+        </strong> para o cliente <strong>{{ currentSalesBudgetInView?.customerName}}</strong>?
+    </p>
+    <po-modal-footer [p-disabled-align]="false">
+        <po-button
+            p-label="Confirmar"
+            p-kind="primary"
+            (p-click)="aproveSalesBudget()">
+        </po-button>
+    </po-modal-footer>
+</po-modal>
+
 <!-- Pagina Principal -->
 <po-page-dynamic-search
     p-title="Orçamentos De Venda"

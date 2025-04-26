@@ -22,6 +22,7 @@
     "@po-ui/ng-templates": "^14.12.1",
     "@totvs/po-theme": "^14.12.1",
     "@totvs/protheus-lib-core": "^14.1.1",
+    "exceljs": "^4.4.0",
     "lodash": "^4.17.21",
     "ngx-cookie-service": "^19.1.2",
     "rxjs": "~7.5.5",

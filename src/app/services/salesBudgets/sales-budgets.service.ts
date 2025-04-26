@@ -74,6 +74,21 @@ constructor(
       return { sucesso: false, mensagem: errorMessage };
     }
   }
+
+  
+  public async AproveSalesBudget(requestJson: any) {
+    const url: string = `http://200.229.234.214:8091/rest/valclei/aprovaorcamento`;
+  
+    try {
+      const response: any = await this.http.post(url, requestJson, environment.header).toPromise();
+      return response;
+    } catch (error: any) {
+      const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
+  
+      return { sucesso: false, mensagem: errorMessage };
+    }
+  }
+
   
   /*
   **********

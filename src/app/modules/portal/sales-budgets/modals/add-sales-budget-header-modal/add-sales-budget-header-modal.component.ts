@@ -1,8 +1,15 @@
-import { Component, ViewChild } from '@angular/core';
-import { PoModalComponent, PoDynamicFormComponent, PoStepperComponent, PoTableColumn, PoTableAction, PoNotificationService } from '@po-ui/ng-components';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  PoModalComponent,
+  PoDynamicFormComponent,
+  PoStepperComponent,
+  PoTableColumn,
+  PoTableAction,
+  PoNotificationService
+} from '@po-ui/ng-components';
 import { EditSalesBudgetItemModalComponent } from '../edit-sales-budget-item-modal/edit-sales-budget-item-modal.component';
-import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { AddSalesBudgetItemModalComponent } from '../add-sales-budget-item-modal/add-sales-budget-item-modal.component';
+import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 
 enum Step {
   Header = 0,
@@ -15,12 +22,14 @@ enum Step {
   templateUrl: './add-sales-budget-header-modal.component.html',
   styleUrls: ['./add-sales-budget-header-modal.component.css']
 })
-export class AddSalesBudgetHeaderModalComponent {
+export class AddSalesBudgetHeaderModalComponent implements OnInit {
   @ViewChild('addSalesBudgetHeaderModal', { static: true }) private modalHeader!: PoModalComponent;
   @ViewChild('addSalesBudgetItemModal', { static: true }) private addItemModal!: AddSalesBudgetItemModalComponent;
   @ViewChild('editSalesBudgetItemModal', { static: true }) private editItemModal!: EditSalesBudgetItemModalComponent;
   @ViewChild('addSalesBudgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
   @ViewChild('salesBudgetStepper', { static: true }) private stepperComponent!: PoStepperComponent;
+
+  @Output() onAdd = new EventEmitter<any>(); // <<< Emitir evento ao criar o orçamento
 
   protected salesBudgetFields: any[] = [];
   protected salesBudgetValue: any = {};
@@ -59,6 +68,7 @@ export class AddSalesBudgetHeaderModalComponent {
     this.salesBudgetValue = {};
     this.tableItems = [];
     this.currentStep = Step.Header;
+    this.stepperComponent.active(0);
     this.modalHeader.open();
   }
 
@@ -128,9 +138,7 @@ export class AddSalesBudgetHeaderModalComponent {
     headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
     headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
     headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
-    headerData['C5_EMISSAO'] = headerData['C5_EMISSAO'] ?? '20250331';
 
-    // Anexa os itens
     headerData['ITENS'] = this.tableItems;
 
     // Chama o serviço e espera a resposta
@@ -183,8 +191,9 @@ export class AddSalesBudgetHeaderModalComponent {
       if (response?.codigo === 201) {
         this.modalHeader.close();
         this.poNotification.success('Registro Criado com Sucesso');
+        this.onAdd.emit(); // <<< Aqui emitimos que o orçamento foi adicionado
       } else {
-        this.poNotification.error(response?.mensagem || 'Erro ao criar pedido');
+        this.poNotification.error(response?.mensagem || 'Erro ao criar orçamento');
       }
     } catch (error) {
       this.poNotification.error('Erro na requisição. Tente novamente mais tarde.');

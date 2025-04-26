@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
+import { Workbook } from 'exceljs';
 
 @Injectable({
   providedIn: 'root'
@@ -168,5 +169,29 @@ export class ImportsService {
     const response: any = await this.http.post(url, importItem,environment.header).toPromise();
     
     return response;
+  }
+
+  public async ConvertExcelFileToJson(file: File): Promise<any[]> {
+    const workbook = new Workbook();
+    const arrayBuffer = await file.arrayBuffer();
+  
+    await workbook.xlsx.load(arrayBuffer);
+  
+    const worksheet = workbook.worksheets[0];
+    const result: any[] = [];
+  
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // pular cabeçalho
+  
+      result.push({
+        cnpj: row.getCell(1).text,
+        pedidoCliente: row.getCell(2).text,
+        itemDoPedido: row.getCell(3).text,
+        produto: row.getCell(4).text,
+        quantidade: row.getCell(5).value
+      });
+    });
+  
+    return result;
   }
 }
