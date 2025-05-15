@@ -48,7 +48,7 @@ constructor(
     const url: string = `http://200.229.234.214:8091/rest/valclei/orcamento`;
   
     try {
-      const response: any = await this.http.post(url, body, environment.header).toPromise();
+      const response: any = await this.http.put(url, body, environment.header).toPromise();
       return response;
     } catch (error: any) {
       const errorMessage = error?.error?.mensagem || 'Erro desconhecido na requisição de pedido de venda';
@@ -202,7 +202,7 @@ constructor(
       },
       {
         property: 'orderNumber',
-        label: 'Pedido',
+        label: 'Orçamento',
         width: "100px"
       },
       {
@@ -309,7 +309,7 @@ constructor(
   public GetSalesBudgetsItemsFields(): PoDynamicFormField[]{
     return [
       {
-        property: 'C6_ITEM',
+        property: 'CK_ITEM',
         label: 'Item',
         readonly: true,
         visible: false,
@@ -317,7 +317,7 @@ constructor(
         gridSmColumns: 12
       },
       {
-        property: 'C6_PRODUTO',
+        property: 'CK_PRODUTO',
         label: 'Produto',
         searchService: this.productsService,
         columns: [
@@ -336,7 +336,7 @@ constructor(
         gridSmColumns: 12
       },
       {
-        property: 'C6_QTDVEN',
+        property: 'CK_QTDVEN',
         label: 'Qtde Vendida',
         type: 'number',
         required: true,
@@ -350,17 +350,17 @@ constructor(
   public GetSalesBudgetsItemsColumns(): PoTableColumn[]{
     return [
       {
-        property: 'C6_ITEM',
+        property: 'CK_ITEM',
         label: 'Item',
         width: '125px'
       },
       {
-        property: 'C6_PRODUTO',
+        property: 'CK_PRODUTO',
         label: 'Produto',
         width: '200px'
       },
       {
-        property: 'C6_QTDVEN',
+        property: 'CK_QTDVEN',
         label: 'Qtde Vendida',
         width: '130px'
       },

@@ -1,0 +1,9 @@
+.delete-icon {
+    font-size: 5rem;
+    /* Aumenta o tamanho do ícone */
+    display: block;
+    margin: 0 auto 1rem auto;
+    /* Centraliza e adiciona espaçamento abaixo */
+    color: #ff0000;
+    /* Cor azul */
+}

@@ -27,19 +27,25 @@ export class MenubarService {
         link: 'Customers'
       },
       {
-        label: 'Notas Fiscais',
-        icon: 'po-icon-document-filled',
-        link: 'Invoices'
-      },
-      {
-        label: 'Pedidos De Venda',
+        label: 'Faturamento',
         icon: 'po-icon-finance',
-        link: 'SalesRequests'
-      },
-      {
-        label: 'Orçamentos De Venda',
-        icon: 'po-icon-cart',
-        link: 'SalesBudgets'
+        subItems: [
+          {
+            label: 'Notas Fiscais',
+            icon: 'po-icon-document-filled',
+            link: 'Invoices'
+          },
+          {
+            label: 'Pedidos de Venda',
+            icon: 'po-icon-finance',
+            link: 'SalesRequests'
+          },
+          {
+            label: 'Orçamentos de Venda',
+            icon: 'po-icon-cart',
+            link: 'SalesBudgets'
+          }
+        ]
       },
       {
         label: 'Importações',
@@ -60,12 +66,13 @@ export class MenubarService {
         label: 'Sair',
         icon: 'po-icon-exit',
         action: () => this.LogOut()
-      },
-    ];
+      }
+    ]
+    
   }
 
   private async LogOut(){
     this.cookieService.deleteAll();
-    await this.router.navigate(['/Authentication']);
+    this.router.navigate(['']);
   }
 }

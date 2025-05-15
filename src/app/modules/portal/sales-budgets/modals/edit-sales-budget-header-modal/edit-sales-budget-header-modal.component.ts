@@ -1,9 +1,20 @@
-import { Component, ViewChild } from '@angular/core';
-import { PoModalComponent, PoDynamicFormComponent, PoStepperComponent, PoTableColumn, PoTableAction, PoNotificationService } from '@po-ui/ng-components';
-import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  ViewChild
+} from '@angular/core';
+import {
+  PoModalComponent,
+  PoDynamicFormComponent,
+  PoStepperComponent,
+  PoTableColumn,
+  PoTableAction,
+  PoNotificationService
+} from '@po-ui/ng-components';
+import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { AddSalesBudgetItemModalComponent } from '../add-sales-budget-item-modal/add-sales-budget-item-modal.component';
 import { EditSalesBudgetItemModalComponent } from '../edit-sales-budget-item-modal/edit-sales-budget-item-modal.component';
-import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 
 enum Step {
   Header = 0,
@@ -20,13 +31,15 @@ export class EditSalesBudgetHeaderModalComponent {
   @ViewChild('addSalesBudgetHeaderModal', { static: true }) private modalHeader!: PoModalComponent;
   @ViewChild('addSalesBudgetItemModal', { static: true }) private addItemModal!: AddSalesBudgetItemModalComponent;
   @ViewChild('editSalesBudgetItemModal', { static: true }) private editItemModal!: EditSalesBudgetItemModalComponent;
-  @ViewChild('addSalesBydgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
-  @ViewChild('salesBudgetStepper', { static: true }) private stepperComponent!: PoStepperComponent;
+  @ViewChild('addSalesBudgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
+
+  @Output() onEdit = new EventEmitter<any>();
 
   protected salesBudgetFields: any[] = [];
   protected salesBudgetValue: any = {};
   protected tableColumns: PoTableColumn[] = [];
   protected tableItems: any[] = [];
+  protected removedItemsFromTableItems: any[] = [];
 
   protected currentStep: Step = Step.Header;
 
@@ -57,16 +70,18 @@ export class EditSalesBudgetHeaderModalComponent {
   }
 
   public async open(selectedItem: any): Promise<void> {
-    this.salesBudgetValue['CJ_CLIENTE'] = selectedItem['customerCode'];
-    this.salesBudgetValue['CJ_TPFRETE'] = selectedItem['shippingMethod'];
-    this.salesBudgetValue['CJ_MENNOTA'] = selectedItem['shippingMethod'];
+    this.salesBudgetValue = {
+      CJ_NUM: selectedItem['orderNumber'],
+      CJ_CLIENTE: selectedItem['customerCode'],
+      CJ_TPFRETE: selectedItem['shippingMethod'],
+      CJ_LOJA: selectedItem['store'],
+    };
 
     this.tableItems = selectedItem['items'];
     this.currentStep = Step.Header;
-    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
+    await this.calculateTaxesForItems();
     this.modalHeader.open();
   }
-
 
   public cancel(): void {
     this.modalHeader.close();
@@ -116,63 +131,23 @@ export class EditSalesBudgetHeaderModalComponent {
   }
 
   public async onSalesBudgetItemCreated(item: any): Promise<void> {
+    item.__isNew = true;
     this.tableItems = [...this.tableItems, item];
-    await this.calculateTaxesForItems(); // <-- Aqui está a chamada
+    await this.calculateTaxesForItems();
   }
 
-
-  private async calculateTaxesForItems(): Promise<void> {
-    const headerData = { ...this.salesBudgetValue };
-
-    // Formata a data, se existir
-    if (headerData['CJ_EMISSAO']) {
-      headerData['CJ_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['CJ_EMISSAO']);
-    }
-
-    // Define campos obrigatórios
-    headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
-    headerData['CJ_LOJACLI'] = '01';
-    headerData['CJ_TABELA'] = headerData['CJ_TABELA'] ?? '999';
-    headerData['CJ_TIPO'] = headerData['CJ_TIPO'] ?? 'N';
-    headerData['CJ_TPFRETE'] = headerData['CJ_TPFRETE'] ?? 'C';
-    headerData['CJ_CONDPAG'] = headerData['CJ_CONDPAG'] ?? '002';
-    headerData['CJ_EMISSAO'] = headerData['CJ_EMISSAO'] ?? '20250331';
-
-    // Anexa os itens
-    headerData['ITENS'] = this.tableItems;
-
-    const response: any = await this.salesBudgetsService.GetSalesBudgetTaxes(headerData);
-
-    if (response && Array.isArray(response.ITENS)) {
-      const updatedItems = this.tableItems.map((originalItem) => {
-        const matchedItem = response.ITENS.find(
-          (resItem: any) => resItem['IT_ITEM'] === originalItem['CK_ITEM']
-        );
-        return matchedItem ? { ...originalItem, ...matchedItem } : originalItem;
-      });
-
-      this.tableItems = updatedItems;
-      this.salesBudgetValue = headerData;
-    }
-  }
-
-
-  public onSalesBudgetItemEdited(item: any): void {
+  public async onSalesBudgetItemEdited(item: any): Promise<void> {
     this.tableItems = this.tableItems.map(existing =>
       existing['CK_ITEM'] === item['CK_ITEM'] ? item : existing
     );
+    await this.calculateTaxesForItems();
   }
 
   private removeItem(itemToRemove: any): void {
+    itemToRemove['LINPOS'] = itemToRemove['CK_ITEM'];
+    itemToRemove['AUTDELETA'] = 'S';
+    this.removedItemsFromTableItems.push(itemToRemove);
     this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
-    this.renumberItems();
-  }
-
-  private renumberItems(): void {
-    this.tableItems = this.tableItems.map((item, index) => ({
-      ...item,
-      CK_ITEM: (index + 1).toString().padStart(2, '0')
-    }));
   }
 
   protected isCreateButtonDisabled(): boolean {
@@ -189,6 +164,8 @@ export class EditSalesBudgetHeaderModalComponent {
       if (response?.codigo === 201) {
         this.modalHeader.close();
         this.poNotification.success('Registro Editado com Sucesso');
+        this.removedItemsFromTableItems = [];
+        this.onEdit.emit();
       } else {
         this.poNotification.error(response?.mensagem || 'Erro ao Editar pedido');
       }
@@ -206,12 +183,17 @@ export class EditSalesBudgetHeaderModalComponent {
 
     payload['CJ_LOJACLI'] = '01';
 
-    // Adiciona os campos fixos a cada item
-    payload['ITENS'] = this.tableItems.map(item => ({
-      ...item,
-      LINPOS: '01',
-      AUTDELETA: 'N'
-    }));
+    const currentItems = this.tableItems.map(item => {
+      const newItem = { ...item };
+      if (!newItem.__isNew) {
+        newItem.LINPOS = item['CK_ITEM'];
+        newItem.AUTDELETA = 'N';
+        newItem.CK_OPER = '01';
+      }
+      return newItem;
+    });
+
+    payload['ITENS'] = [...currentItems, ...this.removedItemsFromTableItems];
 
     return payload;
   }
@@ -222,5 +204,44 @@ export class EditSalesBudgetHeaderModalComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}${month}${day}`;
+  }
+
+  private async calculateTaxesForItems(): Promise<void> {
+    const headerData = { ...this.salesBudgetValue };
+
+    if (headerData['CJ_EMISSAO']) {
+      headerData['CJ_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['CJ_EMISSAO']);
+    }
+
+    headerData['C5_LOJA'] = headerData['C5_LOJACLI'] ?? '01';
+    headerData['C5_TPFRETE'] = headerData['CJ_TPFRETE'] ?? 'C';
+    headerData['C5_LOJACLI'] = headerData['C5_LOJACLI'] ?? '01';
+    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
+    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
+    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
+    headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
+
+    /*headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
+    headerData['C5_LOJACLI'] = '01';
+    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
+    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
+    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
+    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';*/
+    headerData['ITENS'] = this.tableItems;
+
+    const response: any = await this.salesBudgetsService.GetSalesBudgetTaxes(headerData);
+
+    if (response && Array.isArray(response.ITENS)) {
+      const updatedItems = [];
+
+      for (let i = 0; i < this.tableItems.length; i++) {
+        const originalItem = this.tableItems[i];
+        const updatedItem = response.ITENS[i];
+        updatedItems.push({ ...originalItem, ...updatedItem });
+      }
+
+      this.tableItems = updatedItems;
+      this.salesBudgetValue = headerData;
+    }
   }
 }

@@ -163,35 +163,79 @@ export class ImportsService {
     return response['items'];
   }
 
-  public async PostImportItem(importItem: any): Promise<any>{
+  public async PostImportItem(importItem: any): Promise<any> {
     const url: string = `http://200.229.234.214:8091/rest/valclei/integracao`;
-
-    const response: any = await this.http.post(url, importItem,environment.header).toPromise();
-    
-    return response;
+  
+    try {
+      const response: any = await this.http.post(url, importItem, environment.header).toPromise();
+      return response;
+    } catch (error: any) {
+      console.error('Erro ao importar item:', error);
+  
+      // Retorna o corpo da resposta de erro, se disponível
+      if (error.error) {
+        return error.error;
+      }
+  
+      // Caso não haja um corpo de erro, retorna o próprio erro
+      return error;
+    }
+  }
+  
+  async parseCsvToGroupedJson(csv: string): Promise<any[]> {
+    const lines = csv.trim().split('\n');
+    const headers = lines[0].split(';');
+  
+    const headerMap: Record<string, string> = {
+      CNPJ: 'CNPJ',
+      PEDIDO_CLIENTE: 'pedidoCliente',
+      TIPO_FRETE: 'C5_TPFRETE',
+      MENSAGEM_NOTA: 'C5_MENNOTA',
+      ITEM_DO_PEDIDO: 'itemPedido',
+      PRODUTO: 'produto',
+      QUANTIDADE: 'quantidade'
+    };
+  
+    const pedidosMap = new Map<string, any>();
+  
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(';');
+      const row: any = {};
+      headers.forEach((header, index) => {
+        const newKey = headerMap[header];
+        if (newKey) {
+          row[newKey] = values[index];
+        }
+      });
+  
+      const pedidoKey = row['pedidoCliente'];
+  
+      if (!pedidosMap.has(pedidoKey)) {
+        pedidosMap.set(pedidoKey, {
+          CNPJ: row['CNPJ'],
+          C5_TPFRETE: row['C5_TPFRETE'],
+          C5_MENNOTA: row['C5_MENNOTA'],
+          ITENS: []
+        });
+      }
+  
+      const pedido = pedidosMap.get(pedidoKey);
+      pedido.ITENS.push({
+        C6_PEDCLI: row['pedidoCliente'],
+        C6_ITEM: row['itemPedido'],
+        C6_PRODUTO: row['produto'],
+        C6_QTDVEN: row['quantidade'],
+        C6_OPER: "01"
+      });
+    }
+  
+    return Array.from(pedidosMap.values());
   }
 
-  public async ConvertExcelFileToJson(file: File): Promise<any[]> {
-    const workbook = new Workbook();
-    const arrayBuffer = await file.arrayBuffer();
-  
-    await workbook.xlsx.load(arrayBuffer);
-  
-    const worksheet = workbook.worksheets[0];
-    const result: any[] = [];
-  
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // pular cabeçalho
-  
-      result.push({
-        cnpj: row.getCell(1).text,
-        pedidoCliente: row.getCell(2).text,
-        itemDoPedido: row.getCell(3).text,
-        produto: row.getCell(4).text,
-        quantidade: row.getCell(5).value
-      });
-    });
-  
-    return result;
+  private parseNumber(value: any): number {
+    if (typeof value === 'object' && value?.result !== undefined) {
+      return Number(value.result);
+    }
+    return Number(value);
   }
 }

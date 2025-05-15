@@ -55,12 +55,14 @@ method Login(cUserName, cPassword) class TarosModel
 
     return oResponse
 
-method GetCusts(cSalesmanId, cFilter) class TarosModel
+method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
     local oCustomer   := JsonObject():New()
     local aCustomers  := {}
     local oResponse   := JsonObject():New()
 
-	Default cFilter   := ''
+	Default cFilter      := ''
+	Default cInitialDate := ''
+	Default cEndDate     := ''
 
     BeginSql Alias "SQL_CUSTOMERS"
         SELECT
@@ -111,9 +113,14 @@ method GetCusts(cSalesmanId, cFilter) class TarosModel
                 UPPER(A1_MSBLQL) LIKE UPPER('%' || %Exp:cFilter% || '%')
             )
         AND
+            (%Exp:cInitialDate% = '' OR A1_DTCAD > %Exp:cInitialDate%)
+        AND
+            (%Exp:cEndDate% = '' OR A1_DTCAD < %Exp:cEndDate%)
+        AND
             A1_VEND = %Exp:cSalesmanId%
         AND 
             SA1.D_E_L_E_T_ = ''
+        ORDER BY A1_COD ASC
     EndSql
 
     oResponse['total'] := SQL_CUSTOMERS->TOTAL
@@ -819,7 +826,10 @@ method GetSBudg(cSalesmanId, cFilter) class TarosModel
         LEFT JOIN
             %Table:SE4% SE4 ON E4_CODIGO = CJ_CONDPAG AND SE4.D_E_L_E_T_ = ''
         WHERE
+            SCJ.D_E_L_E_T_ = ''
+        AND
             SA1.A1_VEND = %Exp:cSalesmanId%
+        ORDER BY CJ_NUM DESC
     EndSql
 
     While !SQL_SALES_BUDGETS->(EoF())
@@ -836,7 +846,7 @@ method GetSBudg(cSalesmanId, cFilter) class TarosModel
         oSalesBudget[ 'priceTable' ]       := SQL_SALES_BUDGETS->TABELA_PRECO
         oSalesBudget[ 'status' ]           := Alltrim(SQL_SALES_BUDGETS->STATUS)
         //oSalesBudget[ 'message' ]        := Alltrim(SQL_SALES_BUDGETS->MSG_NOTA)
-        //oSalesBudget[ 'items' ]          := ::GetItemsSalesRequests(SQL_SALES_BUDGETS->CODIGO)['items']
+        oSalesBudget[ 'items' ]          := ::GetISBdg(SQL_SALES_BUDGETS->NUMERO)['items']
 
         aadd(aSalesBudgets, oSalesBudget)
         oSalesBudget := JsonObject():New()
@@ -858,23 +868,28 @@ method GetISBdg(cSalesRequestId) class TarosModel
 
     BeginSql Alias "SQL_ITEMS_SALES_REQUESTS"
         SELECT
-            C6_ITEM AS ITEM,
-            C6_PRODUTO AS PRODUTO,
-            C6_QTDVEN AS QTDVEN,
+            CK_ITEM AS ITEM,
+            CK_PRODUTO AS PRODUTO,
+            CK_QTDVEN AS QTDVEN,
             COUNT(*) OVER() AS TOTAL
         FROM
-            %Table:SC6% SC6
+            %Table:SCK% SCK
         WHERE
-            SC6.D_E_L_E_T_ = ''
+            CK_NUM = %Exp:cSalesRequestId%
+        AND
+            SCK.D_E_L_E_T_ = ''
     EndSql
 
     oResponse['total'] := SQL_ITEMS_SALES_REQUESTS->TOTAL
-    oResponse['hasNext'] := SQL_ITEMS_SALES_REQUESTS->TOTAL > (nPage + 1) * nPageSize
 
     While !SQL_ITEMS_SALES_REQUESTS->(EoF())
+        oSalesRequest[ 'CK_ITEM' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->ITEM)
+        oSalesRequest[ 'CK_PRODUTO' ] := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->PRODUTO)
+        oSalesRequest[ 'CK_QTDVEN' ]  := SQL_ITEMS_SALES_REQUESTS->QTDVEN
+
         oSalesRequest[ 'C6_ITEM' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->ITEM)
         oSalesRequest[ 'C6_PRODUTO' ] := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->PRODUTO)
-        oSalesRequest[ 'C6_QTDVEN' ]  := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->QTDVEN)
+        oSalesRequest[ 'C6_QTDVEN' ]  := SQL_ITEMS_SALES_REQUESTS->QTDVEN
 
         aadd(aSalesRequests, oSalesRequest)
         oSalesRequest := JsonObject():New()

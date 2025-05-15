@@ -107,7 +107,8 @@ export class SalesBudgetsComponent {
     const response: any = await this.salesBudgetsService.AproveSalesBudget(requestJson);
 
     if(response['codigo'] == 201){
-      this.poNotification.success(response['Registro Aprovado Com Sucesso']);
+      this.poNotification.success('Registro Aprovado Com Sucesso');
+      await this.loadSalesBudgets();
       this.salesBudgetAprovalModal.close();
     }else{
       this.poNotification.error(response['mensagem']);
@@ -116,35 +117,35 @@ export class SalesBudgetsComponent {
 
   protected async deleteItem(): Promise<void> {
     const requestJson = {
-      "C5_CLIENTE": this.selectedItemToDelete['customerCode'],
-      "C5_LOJACLI": this.selectedItemToDelete['store'],
-      "C5_NUM": this.selectedItemToDelete['orderNumber']
+      "CJ_CLIENTE": this.selectedItemToDelete['customerCode'],
+      "CJ_LOJA": this.selectedItemToDelete['store'],
+      "CJ_NUM": this.selectedItemToDelete['orderNumber']
     };
 
     const response: any = await this.salesBudgetsService.DeleteSalesBudget(requestJson);
 
-    if (response['codigo'] === "201") {
+    if (response['codigo'] === 201) {
       this.poNotification.success("Item deletado");
       this.deleteConfirmationModal.close();
     } else {
       this.poNotification.error("Houve um erro na exclusão do item");
     }
 
-    this.loadSalesBudgets();
+    await this.loadSalesBudgets();
   }
 
   // Métodos de Pesquisa
-  protected onSearch(filter: string): void {
+  protected async onSearch(filter: string): Promise<void> {
     this.page = -1;
     this.salesBudgetsItems = [];
     this.filter = filter;
-    this.loadSalesBudgets();
+    await this.loadSalesBudgets();
   }
 
-  protected onResetSearch(): void {
+  protected async onResetSearch(): Promise<void> {
     this.page = -1;
     this.salesBudgetsItems = [];
     this.filter = '';
-    this.loadSalesBudgets();
+    await this.loadSalesBudgets();
   }
 }

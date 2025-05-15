@@ -115,7 +115,7 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
       return '01';
     }
 
-    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['C6_ITEM'], 10) || 0));
+    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['CK_ITEM'], 10) || 0));
     return (maxItem + 1).toString().padStart(2, '0');
   }
 
@@ -126,18 +126,21 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
     // Clona os dados do cabeçalho
     const headerData = { ...this.salesBudgetValue };
 
-    // Formata a data (se necessário)
-    if (headerData['C5_EMISSAO']) {
-      headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
-    }
-
     // Define campos obrigatórios
+    headerData['C5_LOJA'] = headerData['C5_LOJACLI'] ?? '01';
+    headerData['C5_TPFRETE'] = headerData['CJ_TPFRETE'] ?? 'C';
+    headerData['C5_LOJACLI'] = headerData['C5_LOJACLI'] ?? '01';
+    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
+    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
+    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
     headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
+
+    /*headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
     headerData['C5_LOJACLI'] = '01';
     headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
     headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
     headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
-    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
+    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';*/
 
     headerData['ITENS'] = this.tableItems;
 
@@ -161,7 +164,7 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
 
   public onSalesBudgetItemEdited(item: any): void {
     this.tableItems = this.tableItems.map(existing =>
-      existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing
+      existing['CK_ITEM'] === item['CK_ITEM'] ? item : existing
     );
   }
 
@@ -173,7 +176,7 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
   private renumberItems(): void {
     this.tableItems = this.tableItems.map((item, index) => ({
       ...item,
-      C6_ITEM: (index + 1).toString().padStart(2, '0')
+      CK_ITEM: (index + 1).toString().padStart(2, '0')
     }));
   }
 
@@ -202,22 +205,16 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
 
   private buildSalesBudgetPayload(): any {
     const payload = { ...this.salesBudgetValue };
-
-    if (payload['C5_EMISSAO']) {
-      payload['C5_EMISSAO'] = this.formatDateToYYYYMMDD(payload['C5_EMISSAO']);
-    }
-
-    payload['C5_LOJACLI'] = '01';
-    payload['ITENS'] = this.tableItems;
-
+  
+    payload['CJ_LOJA'] = '01';
+    payload['ITENS'] = this.tableItems.map(item => ({
+      CK_ITEM: item.IT_ITEM,
+      CK_OPER: '01',
+      CK_PRODUTO: item.IT_PRODUTO.trim(),
+      CK_QTDVEN: item.IT_QUANT
+    }));
+  
     return payload;
   }
-
-  private formatDateToYYYYMMDD(dateInput: string | Date): string {
-    const date = new Date(dateInput);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}${month}${day}`;
-  }
+  
 }

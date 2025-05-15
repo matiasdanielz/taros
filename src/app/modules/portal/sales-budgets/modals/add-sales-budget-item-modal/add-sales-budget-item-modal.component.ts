@@ -24,11 +24,16 @@ export class AddSalesBudgetItemModalComponent {
 
   public open(item: string){
     this.salesBudgetValue['C6_ITEM'] = item;
+    this.salesBudgetValue['CK_ITEM'] = item;
+    this.salesBudgetValue['CK_OPER'] = "01";
 
     this.addSalesBudgetItemModal.open();
   }
 
   public OnCreateSalesBudgetItem() {
+
+    this.salesBudgetValue['C6_PRODUTO'] = this.salesBudgetValue['CK_PRODUTO'];
+    this.salesBudgetValue['C6_QTDVEN'] = this.salesBudgetValue['CK_QTDVEN'];
 
     // Emite o item criado para o componente pai
     this.itemCreated.emit(this.salesBudgetValue);

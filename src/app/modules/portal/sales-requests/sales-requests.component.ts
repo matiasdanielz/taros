@@ -91,20 +91,20 @@ export class SalesRequestsComponent {
       this.poNotification.error("Houve um erro na exclusão do item");
     }
 
-    this.LoadSalesRequests();
+    await this.LoadSalesRequests();
   }
 
-  protected onSearch(filter: string): any {
+  protected async onSearch(filter: string): Promise<any> {
     this.page = -1;
     this.salesRequestsItems = [];
     this.filter = filter
-    this.LoadSalesRequests()
+    await this.LoadSalesRequests()
   }
 
-  protected onResetSearch(): any {
+  protected async onResetSearch(): Promise<any> {
     this.page = -1;
     this.salesRequestsItems = [];
     this.filter = ''
-    this.LoadSalesRequests()
+    await this.LoadSalesRequests()
   }
 }

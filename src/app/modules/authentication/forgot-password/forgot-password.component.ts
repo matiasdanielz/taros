@@ -10,7 +10,7 @@ import { ForgotPasswordService } from './forgot-password.service';
 export class ForgotPasswordComponent {
   @ViewChild('forgotPasswordModal', { static: true }) private forgotPasswordModal!: PoModalComponent;
   
-  public email: string = '';
+  public cpf: string = '';
   
   constructor(
     private forgotPasswordService: ForgotPasswordService,
@@ -25,7 +25,7 @@ export class ForgotPasswordComponent {
 
   protected async sendPasswordRecovery(){
     const requestJson = {
-      "vendedor": this.email
+      "vendedor": this.cpf
     };
 
     const response: any = await this.forgotPasswordService.SendPasswordRecovery(requestJson);

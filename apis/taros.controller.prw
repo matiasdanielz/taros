@@ -29,13 +29,13 @@ static method Login(oLoginInfo) class TarosController
 
     return oJsonResult
 
-static method GetCusts(cSalesmanId, cFilter) class TarosController
+static method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetCusts(cSalesmanId, cFilter)
+    oJsonResult := oTarosModel:GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'

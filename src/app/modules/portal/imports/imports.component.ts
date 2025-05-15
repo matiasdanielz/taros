@@ -23,6 +23,10 @@ export class ImportsComponent implements OnInit {
     {
       label: 'Excel',
       action: this.openExcelModal.bind(this)
+    },
+    {
+      label: 'Atualizar Listagem',
+      action: this.loadItems.bind(this)
     }
   ];
 
@@ -52,6 +56,10 @@ export class ImportsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    await this.loadItems();
+  }
+
+  protected async loadItems(){
     this.importsItems = await this.importsService.GetImportsItems();
   }
 
@@ -95,16 +103,41 @@ export class ImportsComponent implements OnInit {
   }
 
   protected async onExcelUpload() {
-
     const uploadItem: any = this.excelUploadComponent['currentFiles'][0];
+    const salesmanId = this.cookieService.get('salesmanId');
     const file: File = uploadItem.rawFile;
-
+    let requestJson = {};
+  
     if (file) {
-      const importItem: any = await this.importsService.ConvertExcelFileToJson(file);
-      const salesRequestItem = {
-        "C5_CLIENTE": ""
+      const text = await this.readFileAsText(file);
+      const json = await this.importsService.parseCsvToGroupedJson(text);
+
+      requestJson = {
+        "VENDEDOR": salesmanId,
+        "TIPO": "EXCEL",
+        "ARQUIVO": uploadItem.name,
+        "EXCEL": json
       };
+
+      const response = await this.importsService.PostImportItem(requestJson);
+
+      if (response['codigo'] == 201) {
+        this.excelModal.close();
+        this.poNotification.success(response['mensagem']);
+        await this.loadItems();
+      }else{
+        this.poNotification.error(response['mensagem']);
+      }
     }
+  }
+  
+  private readFileAsText(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
   }
 
   private convertToBase64(file: File): Promise<string> {

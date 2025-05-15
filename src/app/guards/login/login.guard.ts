@@ -9,8 +9,8 @@ export const loginGuard: CanActivateFn = (route, state) => {
   const isLogged = cookieService.get('isLogged') === 'true';
 
   if (isLogged) {
-    router.navigate(['/Portal']);
-    return false;
+    //router.navigate(['/Portal']);
+    return true;
   }
 
   return true;

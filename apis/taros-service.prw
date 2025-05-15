@@ -5,6 +5,8 @@ WSRESTFUL Taros Description "Taros"
     WSDATA id as string
     WSDATA filter as string
     WSDATA salesmanId as string
+    WSDATA initialDate as string
+    WSDATA endDate as string
 
     WSMETHOD POST login Description "Do Login" WSSYNTAX "/login" PATH "/login"
     WSMETHOD GET customers Description "Returns customers" WSSYNTAX "/customers" PATH "/customers"
@@ -33,14 +35,16 @@ WSMETHOD POST login WSRECEIVE WSSERVICE Taros
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET customers WSRECEIVE salesmanId, filter WSSERVICE Taros
-    local jResponse   := JsonObject():New()
-    local cSalesmanId := self:salesmanId
-    local cFilter     := self:filter
+WSMETHOD GET customers WSRECEIVE salesmanId, filter, initialDate, endDate WSSERVICE Taros
+    local jResponse    := JsonObject():New()
+    local cSalesmanId  := self:salesmanId
+    local cFilter      := self:filter
+    local cInitialDate := self:initialDate
+    local cEndDate     := self:endDate
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetCusts(cSalesmanId, cFilter)
+    jResponse := TarosController():GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate)
 
     self:setresponse(jResponse)
     return .t.

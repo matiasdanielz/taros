@@ -1,0 +1,13 @@
+.positive-titles{
+    color: green;
+    font-size: 50px;
+    margin-bottom: 15px;
+    margin-top: 100px;
+}
+
+.financial-titles{
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    align-items: center;
+}

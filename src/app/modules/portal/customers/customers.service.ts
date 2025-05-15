@@ -281,10 +281,12 @@ export class CustomersService {
   }
 
 
-  public async GetCustomersItems(filter?: string): Promise<any[]>{ 
+  public async GetCustomersItems(filter?: string, initialDate?: string, endDate?: string): Promise<any[]>{ 
     const salesmanId = this.cookieService.get('salesmanId');
     const url: string = `${environment.apiDomain}/customers?`+
       `&salesmanId=${salesmanId}` + 
+      `&initailDate=${initialDate}` + 
+      `&endDate=${endDate}` + 
       `&filter=${filter}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();

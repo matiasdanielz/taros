@@ -11,7 +11,7 @@ export class CustomersComponent implements OnInit {
   @ViewChild('customerInfoModal', {static: true}) customerInfoModal!: PoModalComponent;
 
   //Parametros Da Tabela
-  protected tableHeight: number = window.innerHeight / 1.5;
+  protected tableHeight: number = window.innerHeight / 1.2;
   protected tableActions: PoTableAction[] = [
     {
       label: 'Visualizar',

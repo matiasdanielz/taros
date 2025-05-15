@@ -32,7 +32,6 @@ export class EditSalesRequestHeaderModalComponent {
   @ViewChild('addSalesRequestItemModal', { static: true }) private addItemModal!: AddSalesRequestItemModalComponent;
   @ViewChild('editSalesRequestItemModal', { static: true }) private editItemModal!: EditSalesRequestItemModalComponent;
   @ViewChild('addSalesRequestHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
-  @ViewChild('salesRequestStepper', { static: true }) private stepperComponent!: PoStepperComponent;
 
   @Output() onEdit = new EventEmitter<any>();
 

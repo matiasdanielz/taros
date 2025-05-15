@@ -126,12 +126,7 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   
     // Clona os dados do cabeçalho
     const headerData = { ...this.salesRequestValue };
-  
-    // Formata a data (se necessário)
-    if (headerData['C5_EMISSAO']) {
-      headerData['C5_EMISSAO'] = this.formatDateToYYYYMMDD(headerData['C5_EMISSAO']);
-    }
-  
+
     // Define campos obrigatórios
     headerData['C5_LOJACLI'] = '01';
     headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
@@ -203,21 +198,9 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   private buildSalesRequestPayload(): any {
     const payload = { ...this.salesRequestValue };
 
-    if (payload['C5_EMISSAO']) {
-      payload['C5_EMISSAO'] = this.formatDateToYYYYMMDD(payload['C5_EMISSAO']);
-    }
-
     payload['C5_LOJACLI'] = '01';
     payload['ITENS'] = this.tableItems;
 
     return payload;
-  }
-
-  private formatDateToYYYYMMDD(dateInput: string | Date): string {
-    const date = new Date(dateInput);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}${month}${day}`;
   }
 }
