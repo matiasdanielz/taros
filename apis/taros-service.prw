@@ -62,14 +62,16 @@ WSMETHOD GET invoices WSRECEIVE salesmanId, filter WSSERVICE Taros
     return .t.
 
 
-WSMETHOD GET salesRequests WSRECEIVE salesmanId, filter WSSERVICE Taros
+WSMETHOD GET salesRequests WSRECEIVE salesmanId, filter, initialDate, endDate WSSERVICE Taros
     local jResponse := JsonObject():New()
     local cSalesmanId := self:salesmanId
     local cFilter   := self:filter
+    local cInitialDate := self:initialDate
+    local cEndDate     := self:endDate
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetSReqs(cSalesmanId, cFilter)
+    jResponse := TarosController():GetSReqs(cSalesmanId, cFilter, cInitialDate, cEndDate)
 
     self:setresponse(jResponse)
     return .t.

@@ -6,11 +6,14 @@ export const loginGuard: CanActivateFn = (route, state) => {
   const cookieService = inject(CookieService);
   const router = inject(Router);
 
-  const isLogged = cookieService.get('isLogged') === 'true';
+  const isLogged = localStorage.getItem('salesmanId') !== '';
+
+  console.log(localStorage.getItem('salesmanId'));
+  console.log(isLogged);
 
   if (isLogged) {
-    //router.navigate(['/Portal']);
-    return true;
+    router.navigate(['/Portal']);
+    return false;
   }
 
   return true;

@@ -34,12 +34,12 @@ export class LoginComponent {
 
     const response: any = await this.loginService.DoLogin(requestJson);
 
-    // Salva o cookie com base no login
-    this.cookieService.set('isLogged', response['isLogged'] ? 'true' : 'false');
-    this.cookieService.set('salesmanId', response['sessionInfo']['userId']);
-
     if (response['isLogged'] === true) {
-      this.router.navigate(['/Portal']);
+      localStorage.setItem('salesmanId', response['sessionInfo']['userId']);
+
+      setTimeout(() => {
+        this.router.navigate(['/Portal']);
+      }, 100); // pequena espera
     }else{
       this.poNotification.error("Usuario ou senha incorretos");
     }

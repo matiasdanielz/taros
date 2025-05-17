@@ -68,7 +68,7 @@ export class ProfileService {
   }
 
   public async GetSalesmanInfo(): Promise<any[]>{
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const url: string = `${environment.apiDomain}/salesman?salesmanId=${salesmanId}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();

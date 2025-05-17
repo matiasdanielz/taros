@@ -290,10 +290,12 @@ export class SalesRequestsService {
     ]
   }
 
-  public async GetSalesRequestsItems(filter?: string): Promise<any[]> {
-    const salesmanId = this.cookieService.get('salesmanId');
+  public async GetSalesRequestsItems(filter?: string, initialDate?: string, endDate?: string): Promise<any[]> {
+    const salesmanId = localStorage.getItem('salesmanId');
     const url: string = `${environment.apiDomain}/salesRequests?` +
       `salesmanId=${salesmanId}` +
+      `&initialDate=${initialDate}` +
+      `&endDate=${endDate}` +
       `&filter=${filter}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();
@@ -363,6 +365,11 @@ export class SalesRequestsService {
         width: '200px'
       },
       {
+        property: 'B1_DESC',
+        label: 'Desc Do Produto',
+        width: '200px'
+      },
+      {
         property: 'C6_QTDVEN',
         label: 'Qtde Vendida',
         width: '130px'
@@ -384,7 +391,7 @@ export class SalesRequestsService {
       },
       {
         property: 'IT_VALSOL',
-        label: 'Valor Solidario',
+        label: 'ICMS ST',
         width: '125px'
       },
       {

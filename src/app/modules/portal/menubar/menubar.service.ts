@@ -72,7 +72,7 @@ export class MenubarService {
   }
 
   private async LogOut(){
-    this.cookieService.deleteAll();
+    localStorage.setItem('salesmanId', '');
     this.router.navigate(['']);
   }
 }

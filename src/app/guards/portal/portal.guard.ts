@@ -7,7 +7,7 @@ export const portalGuard: CanActivateFn = (route, state) => {
   const cookieService = inject(CookieService);
   const router = inject(Router);
 
-  const isLogged = cookieService.get('isLogged') === 'true';
+  const isLogged = localStorage.getItem('salesmanId') !== '';
 
   if (!isLogged) {
     router.navigate(['/Authentication']);

@@ -98,7 +98,7 @@ export class SalesBudgetsComponent {
   }
 
   protected async aproveSalesBudget() {
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const requestJson = {
       "vendedor": salesmanId,
       "CJ_NUM": this.currentSalesBudgetInView['orderNumber']

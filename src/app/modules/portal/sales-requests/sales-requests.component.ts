@@ -62,7 +62,7 @@ export class SalesRequestsComponent {
   }
 
   protected async LoadSalesRequests(){
-    this.salesRequestsItems = await this.salesRequestsService.GetSalesRequestsItems(this.filter);
+    this.salesRequestsItems = await this.salesRequestsService.GetSalesRequestsItems(this.filter, '', '');
   }
 
   protected OpenSalesRequestEditModal(selectedItem: any){

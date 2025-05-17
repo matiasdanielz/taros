@@ -288,7 +288,7 @@ constructor(
   }
 
   public async GetSalesBudgetsItems(filter?: string): Promise<any[]> {
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const url: string = `${environment.apiDomain}/salesBudgets?` +
       `salesmanId=${salesmanId}` +
       `&filter=${filter}`;
@@ -360,6 +360,11 @@ constructor(
         width: '200px'
       },
       {
+        property: 'B1_DESC',
+        label: 'Desc Produto',
+        width: '200px'
+      },
+      {
         property: 'CK_QTDVEN',
         label: 'Qtde Vendida',
         width: '130px'
@@ -381,7 +386,7 @@ constructor(
       },
       {
         property: 'IT_VALSOL',
-        label: 'Valor Solidario',
+        label: 'ICMS / ST',
         width: '125px'
       },
       {

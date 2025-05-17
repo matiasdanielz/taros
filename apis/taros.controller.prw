@@ -61,13 +61,13 @@ static method GetInvc(cSalesmanId, cFilter) class TarosController
     return oJsonResult
 
 
-static method GetSReqs(cSalesmanId, cFilter) class TarosController
+static method GetSReqs(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetSReqs(cSalesmanId, cFilter)
+    oJsonResult := oTarosModel:GetSReqs(cSalesmanId, cFilter, cInitialDate, cEndDate)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'

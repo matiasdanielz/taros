@@ -41,7 +41,7 @@ export class CustomersComponent implements OnInit {
   }
 
   protected async LoadCustomers(){
-    this.customersItems = await this.customersService.GetCustomersItems(this.filter);
+    this.customersItems = await this.customersService.GetCustomersItems(this.filter, '', '');
   }
 
   protected openCustomerInfoModal(selectedItem: any){

@@ -282,10 +282,10 @@ export class CustomersService {
 
 
   public async GetCustomersItems(filter?: string, initialDate?: string, endDate?: string): Promise<any[]>{ 
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const url: string = `${environment.apiDomain}/customers?`+
       `&salesmanId=${salesmanId}` + 
-      `&initailDate=${initialDate}` + 
+      `&initialDate=${initialDate}` + 
       `&endDate=${endDate}` + 
       `&filter=${filter}`;
 

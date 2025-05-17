@@ -17,7 +17,7 @@ export class CustomersService {
   ) { }
 
   public getFilteredItems(filteredParams: PoLookupFilteredItemsParams): Observable<any> {
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     
     const url: string = `${environment.apiDomain}/customers?` + 
     `salesmanId=${salesmanId}`;
@@ -29,7 +29,7 @@ export class CustomersService {
   }
 
   getObjectByValue(value: string, filterParams: any){
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const url: string = `${environment.apiDomain}/customers`;
     const filters = {
       "value": value

@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { PoButtonGroupItem, PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
-import { InvoicesService } from './invoices.service';
+import { InvoicesService } from 'src/app/services/invoices/invoices.service';
 
 @Component({
   selector: 'app-invoices',
@@ -66,6 +66,7 @@ export class InvoicesComponent {
   }
 
   protected async LoadInvoices(){
+    console.log("chamada");
     this.invoicesHeaderItems = await this.invoicesService.GetInvoicesItems(this.filter);
   }
 

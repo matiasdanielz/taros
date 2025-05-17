@@ -80,7 +80,7 @@ export class ImportsComponent implements OnInit {
     const uploadItem: any = this.ediUploadComponent['currentFiles'][0];
 
     const file: File = uploadItem.rawFile;
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
 
 
     if (file) {
@@ -98,13 +98,15 @@ export class ImportsComponent implements OnInit {
       if (response['codigo'] == 201) {
         this.ediModal.close();
         this.poNotification.success(response['mensagem']);
+      }else{
+        this.poNotification.error(response['mensagem']);
       }
     }
   }
 
   protected async onExcelUpload() {
     const uploadItem: any = this.excelUploadComponent['currentFiles'][0];
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const file: File = uploadItem.rawFile;
     let requestJson = {};
   

@@ -18,6 +18,10 @@ const routes: Routes = [
     path: 'Portal',
     loadChildren: () => import('./modules/portal/portal.module').then(m => m.PortalModule),
     canActivate: [portalGuard] // aqui adiciona a proteção
+  },
+  {
+    path: '**', // wildcard route
+    redirectTo: 'Portal'
   }
 ];
 

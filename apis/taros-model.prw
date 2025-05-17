@@ -282,13 +282,15 @@ method GetIInvc(cInvoiceId) class TarosModel
 
     return oResponse
 
-method GetSReqs(cSalesmanId, cFilter) class TarosModel
+method GetSReqs(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
     local oSalesRequest  := JsonObject():New()
     local aSalesRequests := {}
     local oResponse      := JsonObject():New()
 
 	Default cSalesmanId   := ''
 	Default cFilter   := ''
+	Default cInitialDate   := ''
+	Default cEndDate   := ''
 
     BeginSql Alias "SQL_SALES_REQUESTS"
         SELECT
@@ -367,6 +369,10 @@ method GetSReqs(cSalesmanId, cFilter) class TarosModel
         WHERE
             C5_VEND1 = %EXP:cSalesmanId%
         AND
+            (%Exp:cInitialDate% = '' OR C5_EMISSAO > %Exp:cInitialDate%)
+        AND
+            (%Exp:cEndDate% = '' OR C5_EMISSAO < %Exp:cEndDate%)
+        AND
             (
                 UPPER(C5_NUM) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
                 UPPER(C5_FILIAL) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
@@ -422,10 +428,13 @@ method GetISRqs(cSalesRequestId) class TarosModel
         SELECT
             C6_ITEM AS ITEM,
             C6_PRODUTO AS PRODUTO,
+            B1_DESC AS DESC_PRODUTO,
             C6_QTDVEN AS QTDVEN,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SC6% SC6
+        LEFT JOIN
+            %Table:SB1% SB1 ON B1_COD = C6_PRODUTO
         WHERE
             SC6.D_E_L_E_T_ = ''
         AND 
@@ -437,6 +446,7 @@ method GetISRqs(cSalesRequestId) class TarosModel
     While !SQL_ITEMS_SALES_REQUESTS->(EoF())
         oSalesRequest[ 'C6_ITEM' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->ITEM)
         oSalesRequest[ 'C6_PRODUTO' ] := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->PRODUTO)
+        oSalesRequest[ 'B1_DESC' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->DESC_PRODUTO)
         oSalesRequest[ 'C6_QTDVEN' ]  := SQL_ITEMS_SALES_REQUESTS->QTDVEN
 
         aadd(aSalesRequests, oSalesRequest)
@@ -516,20 +526,25 @@ method GetIComm(cYearAndMonth) class TarosModel
             E3_NUM AS ID,
             E3_EMISSAO AS EMISSAO,
             E3_SERIE AS SERIE,
+            A1_NOME AS NOME_CLIENTE,
             E3_CODCLI AS CLIENTE,
             E3_BASE AS BASE,
             E3_PORC AS PORCENTAGEM,
             E3_COMIS AS COMISSAO,
             E3_PARCELA AS PARCELA,
             E3_TIPO AS TIPO,
-            E3_SERIE AS SERIE,
             E3_LOJA AS LOJA,
             E3_BAIEMI AS BAIXA_EMISSAO,
             E3_PEDIDO AS PEDIDO,
             E3_VENCTO AS VENCIMENTO,
+            C5_NOTA AS NF,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SE3% SE3
+        LEFT JOIN
+            %Table:SA1% SA1 ON A1_COD = E3_CODCLI
+        LEFT JOIN
+            %Table:SC5% SC5 ON C5_NUM = E3_PEDIDO AND C5_FILIAL = E3_FILIAL
         WHERE 
            SE3.D_E_L_E_T_ = ''
         AND
@@ -548,6 +563,7 @@ method GetIComm(cYearAndMonth) class TarosModel
                                                     cvaltochar(Day2Str(stod(SQL_ITEMS_COMMISSIONS->EMISSAO))))
             oCommission[ 'serial' ]          := ALLTRIM(SQL_ITEMS_COMMISSIONS->SERIE)
             oCommission[ 'customer' ]        := ALLTRIM(SQL_ITEMS_COMMISSIONS->CLIENTE)
+            oCommission[ 'customerName' ]    := ALLTRIM(SQL_ITEMS_COMMISSIONS->NOME_CLIENTE)
             oCommission[ 'salesBase' ]       := SQL_ITEMS_COMMISSIONS->BASE
             oCommission[ 'percentage' ]      := SQL_ITEMS_COMMISSIONS->PORCENTAGEM
             oCommission[ 'commissionValue' ] := SQL_ITEMS_COMMISSIONS->COMISSAO
@@ -563,6 +579,7 @@ method GetIComm(cYearAndMonth) class TarosModel
                                                     cvaltochar(year2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))) + "-" + ;
                                                     cvaltochar(Month2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))) + "-" + ;
                                                     cvaltochar(Day2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))))
+            oCommission[ 'invoice' ]          := ALLTRIM(SQL_ITEMS_COMMISSIONS->NF)
 
         aadd(aCommissions, oCommission)
         oCommission := JsonObject():New()
@@ -870,10 +887,13 @@ method GetISBdg(cSalesRequestId) class TarosModel
         SELECT
             CK_ITEM AS ITEM,
             CK_PRODUTO AS PRODUTO,
+            B1_DESC AS DESC_PRODUTO,
             CK_QTDVEN AS QTDVEN,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SCK% SCK
+        LEFT JOIN 
+            %Table:SB1% SB1 ON B1_COD = CK_PRODUTO
         WHERE
             CK_NUM = %Exp:cSalesRequestId%
         AND
@@ -885,6 +905,7 @@ method GetISBdg(cSalesRequestId) class TarosModel
     While !SQL_ITEMS_SALES_REQUESTS->(EoF())
         oSalesRequest[ 'CK_ITEM' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->ITEM)
         oSalesRequest[ 'CK_PRODUTO' ] := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->PRODUTO)
+        oSalesRequest[ 'B1_DESC' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->DESC_PRODUTO)
         oSalesRequest[ 'CK_QTDVEN' ]  := SQL_ITEMS_SALES_REQUESTS->QTDVEN
 
         oSalesRequest[ 'C6_ITEM' ]    := ALLTRIM(SQL_ITEMS_SALES_REQUESTS->ITEM)

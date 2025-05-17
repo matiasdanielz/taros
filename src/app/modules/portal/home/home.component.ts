@@ -31,11 +31,20 @@ export class HomeComponent implements OnInit{
   }
 
   async ngOnInit(): Promise<void> {
-    const today = new Date();
-    const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1).toLocaleDateString('pt-BR');
-    const todayFormatted = today.toLocaleDateString('pt-BR');
 
+    const today = new Date();
+
+    // Data atual formatada como yyyymmdd
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Mês começa em 0
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayFormatted = `${year}${month}${day}`;
+    
+    // Primeiro dia do mês atual formatado como yyyymmdd
+    const firstDay = String(1).padStart(2, '0'); // Sempre '01'
+    const firstDayOfCurrentMonth = `${year}${month}${firstDay}`;
+    
     this.customersItems = await this.customersService.GetCustomersItems(this.filter, firstDayOfCurrentMonth, todayFormatted);
-    this.salesRequestsItems = await this.salesRequestsService.GetSalesRequestsItems(this.filter);
+    this.salesRequestsItems = await this.salesRequestsService.GetSalesRequestsItems(this.filter, firstDayOfCurrentMonth, todayFormatted);
   }
 }

@@ -69,13 +69,18 @@ export class CommissionsService {
         width: '125px'
       },
       {
-        property: 'id',
-        label: 'Id Venda',
+        property: 'invoice',
+        label: 'Nota Fiscal',
+        width: '125px'
+      },
+      {
+        property: 'order',
+        label: 'Pedido',
         width: '125px'
       },
       {
         property: 'serial',
-        label: 'Serie',
+        label: 'Serie NF',
         width: '125px'
       },
       {
@@ -91,6 +96,11 @@ export class CommissionsService {
       },
       {
         property: 'customer',
+        label: 'ID Cliente',
+        width: '125px'
+      },
+      {
+        property: 'customerName',
         label: 'Cliente',
         width: '125px'
       },
@@ -131,11 +141,6 @@ export class CommissionsService {
         width: '125px'
       },
       {
-        property: 'order',
-        label: 'Pedido',
-        width: '125px'
-      },
-      {
         property: 'dueDate',
         label: 'Vencimento',
         type: 'date',
@@ -146,7 +151,7 @@ export class CommissionsService {
   }
 
   public async GetCommissionsItems(): Promise<any[]>{
-    const salesmanId = this.cookieService.get('salesmanId');
+    const salesmanId = localStorage.getItem('salesmanId');
     const url: string = `${environment.apiDomain}/commissions?salesmanId=${salesmanId}`;
 
     const response: any = await this.http.get(url, environment.header).toPromise();
