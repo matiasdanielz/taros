@@ -122,13 +122,13 @@ static method GetPrTbl(cId, cFilter) class TarosController
 
     return oJsonResult
 
-static method GetProds(cId, cFilter) class TarosController
+static method GetProds(cId, cFilter, cCustomerId) class TarosController
     local oJsonResult := JsonObject():New()
     local oTarosModel := JsonObject():New()
 
     oTarosModel := TarosModel():New()
 
-    oJsonResult := oTarosModel:GetProds(cId, cFilter)
+    oJsonResult := oTarosModel:GetProds(cId, cFilter, cCustomerId)
     
     if oJsonResult == nil
         oJsonResult['responseCode'] := '404'

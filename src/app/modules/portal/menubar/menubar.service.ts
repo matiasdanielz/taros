@@ -19,7 +19,7 @@ export class MenubarService {
       {
         label: 'Home',
         link: 'Home',
-        icon: 'po-icon-home'
+        icon: 'po-icon-home',
       },
       {
         label: 'Clientes',

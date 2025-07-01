@@ -678,7 +678,7 @@ method GetPrTbl(cId, cFilter) class TarosModel
     return oResponse
 
 
-method GetProds(cId, cFilter) class TarosModel
+method GetProds(cId, cFilter, cCustomerId) class TarosModel
     local oProduct  := JsonObject():New()
     local aProducts := {}
     local oResponse := JsonObject():New()
@@ -693,9 +693,14 @@ method GetProds(cId, cFilter) class TarosModel
         FROM 
             %Table:SB1% SB1
         LEFT JOIN
-            %Table:DA1% DA1 ON DA1_CODPRO = B1_COD
+            %Table:SA1% SA1 ON A1_COD AND SA1.D_E_L_E_T_ = ''
+        LEFT JOIN
+            %Table:DA1% DA1 ON DA1_CODPRO = B1_COD AND DA1_CODTAB = A1_TABELA
         WHERE
             SB1.D_E_L_E_T_ = ''
+            AND (
+                DA1_CODTAB = SA1.A1_TABELA
+            )
             AND (
                 %Exp:cId% = ''
                 OR B1_COD = %Exp:cId%

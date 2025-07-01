@@ -19,6 +19,8 @@ export class CustomersService {
   public getFilteredItems(filteredParams: PoLookupFilteredItemsParams): Observable<any> {
     const salesmanId = localStorage.getItem('salesmanId');
     
+    console.log(salesmanId);
+
     const url: string = `${environment.apiDomain}/customers?` + 
     `salesmanId=${salesmanId}`;
 

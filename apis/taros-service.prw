@@ -5,6 +5,7 @@ WSRESTFUL Taros Description "Taros"
     WSDATA id as string
     WSDATA filter as string
     WSDATA salesmanId as string
+    WSDATA customerId as string
     WSDATA initialDate as string
     WSDATA endDate as string
 
@@ -113,14 +114,15 @@ WSMETHOD GET priceTables WSRECEIVE id, filter WSSERVICE Taros
     self:setresponse(jResponse)
     return .t.
 
-WSMETHOD GET products WSRECEIVE id, filter WSSERVICE Taros
-    local jResponse := JsonObject():New()
-    local cId   := self:id
-    local cFilter   := self:filter
+WSMETHOD GET products WSRECEIVE id, customerId, filter WSSERVICE Taros
+    local jResponse   := JsonObject():New()
+    local cId         := self:id
+    local cFilter     := self:filter
+    local cCustomerId := self:customerId
 
     self:SetContentType('application/json')
     
-    jResponse := TarosController():GetProds(cId, cFilter)
+    jResponse := TarosController():GetProds(cId, cFilter, cCustomerId)
 
     self:setresponse(jResponse)
     return .t.
