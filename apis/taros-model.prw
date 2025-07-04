@@ -34,7 +34,8 @@ method Login(cUserName, cPassword) class TarosModel
 
     BeginSql Alias "SQL_LOGIN"
         SELECT
-            A3_COD
+            A3_COD,
+            A3_NREDUZ
         FROM
             %Table:SA3% SA3
         WHERE
@@ -45,6 +46,7 @@ method Login(cUserName, cPassword) class TarosModel
 
     If !SQL_LOGIN->(EoF())
         oSessionInfo['userId'] := SA3->A3_COD
+        oSessionInfo['name'] := Alltrim(SA3->A3_NREDUZ)
 
         bIsLogged := .T.
     EndIf
@@ -84,6 +86,8 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
             E4_DESCRI AS CONDPAG,
             DA0_DESCRI AS TABELA,
             A1_MSBLQL AS STATUS,
+            A1_TPFRET AS TIPO_FRETE,
+            A4_NOME AS TRANSPORTADORA,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SA1% SA1
@@ -91,6 +95,8 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
             %Table:SE4% SE4 ON SE4.E4_CODIGO = A1_COND AND SE4.D_E_L_E_T_ = ''
         LEFT JOIN    
             %Table:DA0% DA0 ON DA0.DA0_CODTAB = A1_TABELA AND DA0.D_E_L_E_T_ = ''
+        LEFT JOIN
+            %Table:SA4% SA4 ON A4_COD = A1_TRANSP AND A4_FILIAL = %XFILIAL:SA4% AND SA4.D_E_L_E_T_ = ''
         WHERE
             (
                 UPPER(A1_COD) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
@@ -144,6 +150,8 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
         oCustomer[ 'paymentCondition' ] := ALLTRIM(SQL_CUSTOMERS->CONDPAG)
         oCustomer[ 'priceTable' ]       := ALLTRIM(SQL_CUSTOMERS->TABELA)
         oCustomer[ 'status' ]           := ALLTRIM(SQL_CUSTOMERS->STATUS)
+        oCustomer[ 'carrier' ]          := ALLTRIM(SQL_CUSTOMERS->TRANSPORTADORA)
+        oCustomer[ 'C5_TPFRETE' ]       := ALLTRIM(SQL_CUSTOMERS->TIPO_FRETE)
 
         aadd(aCustomers, oCustomer)
         oCustomer := JsonObject():New()
@@ -193,9 +201,9 @@ method GetHInvc(cSalesmanId, cFilter) class TarosModel
         FROM
             %Table:SF2% SF2
         LEFT JOIN
-            %Table:SA1% SA1 ON A1_COD = F2_CLIENTE AND SA1.D_E_L_E_T_ = ''
+            %Table:SA1% SA1 ON A1_COD = F2_CLIENTE AND A1_LOJA = F2_LOJA AND SA1.D_E_L_E_T_ = ''
         LEFT JOIN
-            %Table:SE4% SE4 ON E4_CODIGO = F2_COND AND SE4.D_E_L_E_T_ = ''
+            %Table:SE4% SE4 ON E4_CODIGO = F2_COND AND E4_FILIAL = %xfilial:SE4% AND SE4.D_E_L_E_T_ = ''
         WHERE
             F2_VEND1 = %EXP:cSalesmanId%
         AND
@@ -685,6 +693,7 @@ method GetProds(cId, cFilter, cCustomerId) class TarosModel
 
     Default cId := ""
     Default cFilter := ""
+    Default cCustomerId := ""
 
     BeginSql Alias "SQL_SB1"
         SELECT
@@ -693,11 +702,14 @@ method GetProds(cId, cFilter, cCustomerId) class TarosModel
         FROM 
             %Table:SB1% SB1
         LEFT JOIN
-            %Table:SA1% SA1 ON A1_COD AND SA1.D_E_L_E_T_ = ''
+            %Table:SA1% SA1 ON A1_FILIAL = %XFILIAL:SA1% AND SA1.D_E_L_E_T_ = ''
         LEFT JOIN
             %Table:DA1% DA1 ON DA1_CODPRO = B1_COD AND DA1_CODTAB = A1_TABELA
         WHERE
             SB1.D_E_L_E_T_ = ''
+            AND (
+                SA1.A1_COD LIKE UPPER('%' || %Exp:cCustomerId% || '%')
+            )
             AND (
                 DA1_CODTAB = SA1.A1_TABELA
             )
@@ -712,6 +724,8 @@ method GetProds(cId, cFilter, cCustomerId) class TarosModel
                     UPPER(B1_COD) LIKE UPPER('%' || %Exp:cFilter% || '%')
                 )
             )
+            AND
+                SB1.B1_FILIAL = %XFILIAL:SB1%
             AND
                 DA1.DA1_CODPRO != ''
     EndSql
@@ -947,7 +961,8 @@ method GetImpts(cSalesmanId, cFilter) class TarosModel
             Z00_PEDCOM AS PEDIDO_COMPRA, 
             Z00_EMISSA AS DATA_EMISSAO, 
             Z00_ARQUIV AS ARQUIVO,
-            Z00_PV AS PEDIDO_VENDA
+            Z00_PV AS PEDIDO_VENDA,
+            Z00_OBS AS OBSERVACOES
         FROM 
             %Table:Z00% Z00
         LEFT JOIN
@@ -975,6 +990,7 @@ method GetImpts(cSalesmanId, cFilter) class TarosModel
                                             cvaltochar(Day2Str(stod(SQL_IMPORTS->DATA_EMISSAO))))
         oImport[ 'fileName' ]         := Alltrim(SQL_IMPORTS->ARQUIVO)
         oImport[ 'salesOrder' ]       := Alltrim(SQL_IMPORTS->PEDIDO_VENDA)
+        oImport[ 'observation' ]      := Alltrim(SQL_IMPORTS->OBSERVACOES)
 
         aadd(aImports, oImport)
         oImport := JsonObject():New()

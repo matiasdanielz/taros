@@ -14,7 +14,8 @@
             <po-dynamic-form
                 #addSalesBudgetHeaderForm
                 [p-fields]="salesBudgetFields"
-                [p-value]="salesBudgetValue">
+                [p-value]="salesBudgetValue"
+                [p-validate]="onChangeFields.bind(this)">
             </po-dynamic-form>
         </po-step>
         <po-step
@@ -37,7 +38,6 @@
                 [p-hide-columns-manager]="true"
                 [p-sort]="true"
                 [p-striped]="true"
-                [p-height]="tableHeight"
                 [p-hide-text-overflow]="true"
                 [p-actions]="tableActions"
                 [p-columns]="tableColumns"
@@ -60,7 +60,6 @@
                 [p-hide-columns-manager]="true"
                 [p-sort]="true"
                 [p-striped]="true"
-                [p-height]="tableHeight"
                 [p-hide-text-overflow]="true"
                 [p-columns]="tableColumns"
                 [p-items]="tableItems">

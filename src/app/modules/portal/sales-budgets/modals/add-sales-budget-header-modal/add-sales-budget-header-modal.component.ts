@@ -5,11 +5,14 @@ import {
   PoStepperComponent,
   PoTableColumn,
   PoTableAction,
-  PoNotificationService
+  PoNotificationService,
+  PoDynamicFormFieldChanged,
+  PoDynamicFormValidation
 } from '@po-ui/ng-components';
 import { EditSalesBudgetItemModalComponent } from '../edit-sales-budget-item-modal/edit-sales-budget-item-modal.component';
 import { AddSalesBudgetItemModalComponent } from '../add-sales-budget-item-modal/add-sales-budget-item-modal.component';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
+import { CustomersService } from 'src/app/services/customers/customers.service';
 
 enum Step {
   Header = 0,
@@ -56,8 +59,9 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
 
   constructor(
     private salesBudgetsService: SalesBudgetsService,
-    private poNotification: PoNotificationService
-  ) { }
+    private poNotification: PoNotificationService,
+    private customersService: CustomersService
+  ) {}
 
   ngOnInit(): void {
     this.tableColumns = this.salesBudgetsService.GetSalesBudgetsItemsColumns();
@@ -102,12 +106,12 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
   }
 
   protected openItemEditModal(selectedItem: any): void {
-    this.editItemModal.open(selectedItem);
+    this.editItemModal.open(selectedItem, this.salesBudgetValue['CJ_CLIENTE']);
   }
 
   protected openItemModal(): void {
     const nextItemNumber = this.getNextItemNumber();
-    this.addItemModal.open(nextItemNumber);
+    this.addItemModal.open(nextItemNumber, this.salesBudgetValue['CJ_CLIENTE']);
   }
 
   private getNextItemNumber(): string {
@@ -115,18 +119,20 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
       return '01';
     }
 
-    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['CK_ITEM'], 10) || 0));
+    const maxItem = Math.max(...this.tableItems
+      .filter(i => i.CK_ITEM !== 'TOTALIZADOR')
+      .map(item => parseInt(item['CK_ITEM'], 10) || 0));
     return (maxItem + 1).toString().padStart(2, '0');
   }
 
   public async onSalesBudgetItemCreated(item: any): Promise<void> {
-    // Adiciona o item à lista
+    this.removeTotalsRow();
+
     this.tableItems = [...this.tableItems, item];
 
-    // Clona os dados do cabeçalho
+
     const headerData = { ...this.salesBudgetValue };
 
-    // Define campos obrigatórios
     headerData['C5_LOJA'] = headerData['C5_LOJACLI'] ?? '01';
     headerData['C5_TPFRETE'] = headerData['CJ_TPFRETE'] ?? 'C';
     headerData['C5_LOJACLI'] = headerData['C5_LOJACLI'] ?? '01';
@@ -135,49 +141,55 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
     headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
     headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
 
-    /*headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
-    headerData['C5_LOJACLI'] = '01';
-    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
-    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
-    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
-    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';*/
+    headerData['ITENS'] = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR');
 
-    headerData['ITENS'] = this.tableItems;
-
-    // Chama o serviço e espera a resposta
     const response: any = await this.salesBudgetsService.GetSalesBudgetTaxes(headerData);
 
-    // Atualiza os itens da tabela com os dados retornados
     if (response && Array.isArray(response.ITENS)) {
       const updatedItems = this.tableItems.map((originalItem) => {
+        if (originalItem.CK_ITEM === 'TOTALIZADOR') return originalItem;
         const matchedItem = response.ITENS.find(
-          (resItem: any) => resItem['IT_ITEM'] === originalItem['C6_ITEM']
+          (resItem: any) => resItem['IT_ITEM'] === originalItem['CK_ITEM']
         );
         return matchedItem ? { ...originalItem, ...matchedItem } : originalItem;
       });
 
-      this.tableItems = [];
       this.tableItems = updatedItems;
       this.salesBudgetValue = headerData;
     }
+
+    this.updateTotalsRow();
   }
 
   public onSalesBudgetItemEdited(item: any): void {
+    this.removeTotalsRow();
+
     this.tableItems = this.tableItems.map(existing =>
       existing['CK_ITEM'] === item['CK_ITEM'] ? item : existing
     );
+
+    this.updateTotalsRow();
   }
 
   private removeItem(itemToRemove: any): void {
+    this.removeTotalsRow();
+
     this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
+
     this.renumberItems();
+
+    this.updateTotalsRow();
   }
 
   private renumberItems(): void {
-    this.tableItems = this.tableItems.map((item, index) => ({
-      ...item,
-      CK_ITEM: (index + 1).toString().padStart(2, '0')
-    }));
+    this.tableItems = this.tableItems
+      .filter(i => i.CK_ITEM !== 'TOTALIZADOR')
+      .map((item, index) => ({
+        ...item,
+        CK_ITEM: (index + 1).toString().padStart(2, '0')
+      }));
+
+    this.updateTotalsRow();
   }
 
   protected isCreateButtonDisabled(): boolean {
@@ -194,7 +206,7 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
       if (response?.codigo === 201) {
         this.modalHeader.close();
         this.poNotification.success('Registro Criado com Sucesso');
-        this.onAdd.emit(); // <<< Aqui emitimos que o orçamento foi adicionado
+        this.onAdd.emit();
       } else {
         this.poNotification.error(response?.mensagem || 'Erro ao criar orçamento');
       }
@@ -205,16 +217,69 @@ export class AddSalesBudgetHeaderModalComponent implements OnInit {
 
   private buildSalesBudgetPayload(): any {
     const payload = { ...this.salesBudgetValue };
-  
+
     payload['CJ_LOJA'] = '01';
-    payload['ITENS'] = this.tableItems.map(item => ({
+
+    const filteredItems = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR');
+
+    payload['ITENS'] = filteredItems.map(item => ({
       CK_ITEM: item.IT_ITEM,
       CK_OPER: '01',
       CK_PRODUTO: item.IT_PRODUTO.trim(),
       CK_QTDVEN: item.IT_QUANT
     }));
-  
+
     return payload;
   }
-  
+
+  protected async onChangeFields(changedValue: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
+    if (changedValue['property'] == "CJ_CLIENTE") {
+      const selectedCustomerId = changedValue['value']['id'];
+      const response: any = await this.customersService.GetCustomersItems(selectedCustomerId);
+      const selectedCustomer = response[0];
+
+      this.salesBudgetValue['customerAdress'] = selectedCustomer['adress'];
+      this.salesBudgetValue['paymentCondition'] = selectedCustomer['paymentCondition'];
+      this.salesBudgetValue['priceTable'] = selectedCustomer['priceTable'];
+      this.salesBudgetValue['carrier'] = selectedCustomer['carrier'];
+      this.salesBudgetValue['CJ_TPFRETE'] = selectedCustomer['C5_TPFRETE'];
+    }
+
+    return {};
+  }
+
+  private removeTotalsRow(): void {
+    this.tableItems = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR');
+  }
+
+  private sum(items: any[], property: string): number {
+    return items.reduce((acc, item) => {
+      const val = parseFloat(item[property]);
+      return acc + (isNaN(val) ? 0 : val);
+    }, 0);
+  }
+
+  private buildTotalizerItem(items: any[]): any {
+    return {
+      CK_ITEM: 'TOTALIZADOR',
+      CK_PRODUTO: '',
+      B1_DESC: '',
+      CK_QTDVEN: this.sum(items, 'CK_QTDVEN'),
+      IT_PRCUNI: this.sum(items, 'IT_PRCUNI'),
+      IT_VALMERC: this.sum(items, 'IT_VALMERC'),
+      IT_VALICM: this.sum(items, 'IT_VALICM'),
+      IT_VALSOL: this.sum(items, 'IT_VALSOL'),
+      IT_VALIPI: this.sum(items, 'IT_VALIPI'),
+      IT_DIFAL: this.sum(items, 'IT_DIFAL'),
+      IT_SLDPROD: this.sum(items, 'IT_SLDPROD')
+    };
+  }
+
+  private updateTotalsRow(): void {
+    this.removeTotalsRow();
+
+    const totalRow = this.buildTotalizerItem(this.tableItems);
+
+    this.tableItems = [...this.tableItems, totalRow];
+  }
 }

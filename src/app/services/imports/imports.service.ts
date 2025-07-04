@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
-import { CookieService } from 'ngx-cookie-service';
 import { environment } from 'src/environments/environment';
-import { Workbook } from 'exceljs';
+import { AuthService } from '../auth/auth.service';
+import { Import } from 'src/app/models/import/import';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +12,7 @@ export class ImportsService {
 
   constructor(
     private http: HttpClient,
-    private cookieService: CookieService
+    private authService: AuthService
   ) { }
 
   public GetImportsFields(): PoDynamicViewField[] {
@@ -79,6 +79,11 @@ export class ImportsService {
         label: 'Arquivo',
         gridColumns: 6,
         gridSmColumns: 12
+      },
+      {
+        property: 'observations',
+        label: 'Observações',
+        gridColumns: 12
       }
     ];
     
@@ -154,14 +159,21 @@ export class ImportsService {
     ];
   }
 
-  public async GetImportsItems(): Promise<any[]>{
-    const salesmanId = localStorage.getItem('salesmanId');
-    const url: string = `${environment.apiDomain}/imports?salesmanId=${salesmanId}`;
-
+  public async GetImportsItems(): Promise<Import[]> {
+    const session = this.authService.getSession();
+    const salesmanId = session?.sessionInfo?.userId;
+  
+    if (!salesmanId) {
+      console.warn('Usuário não está logado ou sessão inválida.');
+      return [];
+    }
+  
+    const url = `${environment.apiDomain}/imports?salesmanId=${salesmanId}`;
     const response: any = await this.http.get(url, environment.header).toPromise();
-    
-    return response['items'];
+  
+    return response?.items ?? [];
   }
+  
 
   public async PostImportItem(importItem: any): Promise<any> {
     const url: string = `http://200.229.234.214:8091/rest/valclei/integracao`;

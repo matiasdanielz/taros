@@ -1,15 +1,12 @@
-import { inject, Injectable } from '@angular/core';
-import { CanActivate, CanActivateFn, Router } from '@angular/router';
-import { CookieService } from 'ngx-cookie-service';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 export const loginGuard: CanActivateFn = (route, state) => {
-  const cookieService = inject(CookieService);
   const router = inject(Router);
+  const authService = inject(AuthService);
 
-  const isLogged = localStorage.getItem('salesmanId') !== '';
-
-  console.log(localStorage.getItem('salesmanId'));
-  console.log(isLogged);
+  const isLogged = authService.isLoggedIn();
 
   if (isLogged) {
     router.navigate(['/Portal']);
@@ -17,4 +14,4 @@ export const loginGuard: CanActivateFn = (route, state) => {
   }
 
   return true;
-}
+};

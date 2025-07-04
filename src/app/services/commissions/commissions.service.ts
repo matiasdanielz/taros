@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PoDynamicViewField, PoTableColumn, PoTableDetail } from '@po-ui/ng-components';
-import { last } from 'lodash';
-import { CookieService } from 'ngx-cookie-service';
+import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../auth/auth.service';
+import { Commission } from 'src/app/models/commission/commission';
 
 @Injectable({
   providedIn: 'root'
@@ -12,10 +12,10 @@ export class CommissionsService {
 
   constructor(
     private http: HttpClient,
-    private cookieService: CookieService
+    private authService: AuthService
   ) { }
 
-  public GetCommissionsHeaderFields(): PoDynamicViewField[]{
+  public GetCommissionsHeaderFields(): PoDynamicViewField[] {
     return [
       {
         property: 'year',
@@ -32,7 +32,7 @@ export class CommissionsService {
     ];
   }
 
-  public GetCommissionsHeaderColumns(): PoTableColumn[]{
+  public GetCommissionsHeaderColumns(): PoTableColumn[] {
     return [
       {
         property: 'year',
@@ -58,10 +58,10 @@ export class CommissionsService {
         type: 'currency',
         format: "R$"
       }
-    ];    
+    ];
   }
 
-  public GetCommissionsItemsColumns(): PoTableColumn[]{
+  public GetCommissionsItemsColumns(): PoTableColumn[] {
     return [
       {
         property: 'branch',
@@ -147,15 +147,22 @@ export class CommissionsService {
         width: '125px'
       }
     ];
-    
+
   }
 
-  public async GetCommissionsItems(): Promise<any[]>{
-    const salesmanId = localStorage.getItem('salesmanId');
+  public async GetCommissionsItems(): Promise<Commission[]> {
+    const session = this.authService.getSession();
+    const salesmanId = session?.sessionInfo?.userId;
+
+    if (!salesmanId) {
+      console.warn('Usuário não está logado ou sessão inválida.');
+      return [];
+    }
+
     const url: string = `${environment.apiDomain}/commissions?salesmanId=${salesmanId}`;
-
     const response: any = await this.http.get(url, environment.header).toPromise();
-    
-    return response['items'];
+
+    return response['items'] ?? [];
   }
+
 }

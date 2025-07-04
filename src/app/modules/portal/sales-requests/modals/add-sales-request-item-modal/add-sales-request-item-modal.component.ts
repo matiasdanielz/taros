@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { PoDynamicFormField, PoModalComponent, PoTableAction } from '@po-ui/ng-components';
+import { PoDynamicFormField, PoDynamicFormFieldChanged, PoDynamicFormValidation, PoModalComponent, PoTableAction } from '@po-ui/ng-components';
+import { ProductsService } from 'src/app/services/products/products.service';
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 
 @Component({
@@ -17,19 +18,22 @@ export class AddSalesRequestItemModalComponent {
   protected salesRequestValue: any = {};
 
   constructor(
-    private salesRequestsService: SalesRequestsService
+    private salesRequestsService: SalesRequestsService,
+    private productsService: ProductsService
   ){
-    this.salesRequestsFields = salesRequestsService.GetSalesRequestsItemsFields();
   }
 
-  public open(item: string){
+  public open(item: string, customerId: string){
     this.salesRequestValue['C6_ITEM'] = item;
+    this.salesRequestValue['customerId'] = customerId;
+
+    this.salesRequestsFields = this.salesRequestsService.GetSalesRequestsItemsFields(this.salesRequestValue['customerId']);
+
 
     this.addSalesRequestItemModal.open();
   }
 
-  public OnCreateSalesRequestItem() {
-
+  public onCreateSalesRequestItem() {
     // Emite o item criado para o componente pai
     this.itemCreated.emit(this.salesRequestValue);
 
@@ -39,4 +43,16 @@ export class AddSalesRequestItemModalComponent {
     // Limpa o formulário, se necessário
     this.salesRequestValue = {};
   }
+
+  protected async onChangeFields(changedValue: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation>{
+    if(changedValue['property'] == "C6_PRODUTO"){
+      const response = await this.productsService.getProductsItems(changedValue['value']['C6_PRODUTO']);
+      const selectedProduct = response[0];
+
+      this.salesRequestValue['B1_DESC'] = selectedProduct['label'];
+    }
+
+    return {};
+  }
+
 }

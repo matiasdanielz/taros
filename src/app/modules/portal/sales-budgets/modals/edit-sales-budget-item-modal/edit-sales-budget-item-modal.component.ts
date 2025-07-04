@@ -19,11 +19,15 @@ export class EditSalesBudgetItemModalComponent {
   constructor(
     private salesBudgetsService: SalesBudgetsService
   ){
-    this.salesBudgetsFields = salesBudgetsService.GetSalesBudgetsItemsFields();
   }
 
-  public open(itemToEdit: any){
+  public open(itemToEdit: any, customerId: string){
     this.salesBudgetValue = itemToEdit;
+    this.salesBudgetValue['CJ_CLIENTE'] = customerId;
+
+    this.salesBudgetsFields = this.salesBudgetsService.GetSalesBudgetsItemsFields(this.salesBudgetValue['CJ_CLIENTE']);
+
+
     this.editSalesBudgetModal.open();
   }
 

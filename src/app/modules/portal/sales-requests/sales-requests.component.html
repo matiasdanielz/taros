@@ -29,5 +29,8 @@
         [p-height]="tableHeight"
         [p-hide-text-overflow]="true"
         [p-actions]="tableActions">
+        <ng-template p-table-column-template p-property="branch" let-value>
+            <div>teste</div>
+        </ng-template>
     </po-table>
 </po-page-dynamic-search>

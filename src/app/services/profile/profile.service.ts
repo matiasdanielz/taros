@@ -2,16 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoDynamicViewField } from '@po-ui/ng-components';
 import { CookieService } from 'ngx-cookie-service';
+import { User } from 'src/app/models/user/user';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProfileService {
 
-  constructor(
+constructor(
     private http: HttpClient,
-    private cookieService: CookieService
+    private authService: AuthService
   ) { }
 
   public GetProfileFields(): PoDynamicViewField[]{
@@ -67,12 +69,17 @@ export class ProfileService {
     ]; 
   }
 
-  public async GetSalesmanInfo(): Promise<any[]>{
-    const salesmanId = localStorage.getItem('salesmanId');
-    const url: string = `${environment.apiDomain}/salesman?salesmanId=${salesmanId}`;
-
+  public async GetSalesmanInfo(): Promise<User> {
+    const session = this.authService.getSession();
+    const salesmanId = session?.sessionInfo?.userId;
+  
+    if (!salesmanId) {
+      console.warn('Usuário não está logado ou sessão inválida.');
+    }
+  
+    const url = `${environment.apiDomain}/salesman?salesmanId=${salesmanId}`;
     const response: any = await this.http.get(url, environment.header).toPromise();
-    
-    return response['salesmanInfo'];
+  
+    return response?.salesmanInfo ?? null;
   }
 }

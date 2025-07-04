@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { CustomersService } from './customers.service';
 import { PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
+import { Customer } from 'src/app/models/customer/customer';
+import { CustomersService } from 'src/app/services/customers/customers.service';
 
 @Component({
   selector: 'app-customers',
@@ -22,9 +23,9 @@ export class CustomersComponent implements OnInit {
 
   //Itens Da Tabela De Clientes
   protected customersColumns: PoTableColumn[] = [];
-  protected customersItems: any[] = [];
+  protected customersItems: Customer[] = [];
   protected customersFields: PoDynamicViewField[] = [];
-  protected currentCustomerInView: any;
+  protected currentCustomerInView: Customer = {};
   protected page: number = 0;
   protected pageSize: number = 12;
   protected filter: string = '';

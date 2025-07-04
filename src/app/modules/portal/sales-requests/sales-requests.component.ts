@@ -42,7 +42,6 @@ export class SalesRequestsComponent {
   //Itens Da Tabela De Clientes
   protected salesRequestsColumns: PoTableColumn[] = [];
   protected salesRequestsItems: any[] = [];
-  protected salesRequestsFields: PoDynamicViewField[] = [];
   protected currentSalesRequestInView: any = {};
   protected selectedItemToDelete: any = {};
   protected page: number = 0;
@@ -54,7 +53,6 @@ export class SalesRequestsComponent {
     private poNotification: PoNotificationService
   ){
     this.salesRequestsColumns = salesRequestsService.GetSalesRequestsHeaderColumns();
-    this.salesRequestsFields = salesRequestsService.GetSalesRequestsHeaderFields();
   }
 
   async ngOnInit(): Promise<void> {
@@ -106,5 +104,9 @@ export class SalesRequestsComponent {
     this.salesRequestsItems = [];
     this.filter = ''
     await this.LoadSalesRequests()
+  }
+
+  protected onClick(){
+    console.log("chamada");
   }
 }

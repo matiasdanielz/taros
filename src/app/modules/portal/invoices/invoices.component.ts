@@ -1,5 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { PoButtonGroupItem, PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
+import { Invoice } from 'src/app/models/invoice/invoice';
 import { InvoicesService } from 'src/app/services/invoices/invoices.service';
 
 @Component({
@@ -45,10 +46,10 @@ export class InvoicesComponent {
   //Itens Da Tabela De Clientes
   protected invoicesColumns: PoTableColumn[] = [];
   protected invoicesItemsColumns: PoTableColumn[] = [];
-  protected invoicesHeaderItems: PoTableColumn[] = [];
+  protected invoicesHeaderItems: Invoice[] = [];
   protected invoicesItems: any[] = [];
   protected invoicesFields: PoDynamicViewField[] = [];
-  protected currentInvoiceInView: any;
+  protected currentInvoiceInView: Invoice = {};
   protected page: number = 0;
   protected pageSize: number = 12;
   protected filter: string = '';
@@ -66,7 +67,6 @@ export class InvoicesComponent {
   }
 
   protected async LoadInvoices(){
-    console.log("chamada");
     this.invoicesHeaderItems = await this.invoicesService.GetInvoicesItems(this.filter);
   }
 

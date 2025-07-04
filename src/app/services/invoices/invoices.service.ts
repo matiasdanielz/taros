@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { PoDynamicViewField, PoTableColumn } from '@po-ui/ng-components';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../auth/auth.service';
+import { Invoice } from 'src/app/models/invoice/invoice';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +11,8 @@ import { environment } from 'src/environments/environment';
 export class InvoicesService {
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private authService: AuthService
   ) { }
 
   public GetInvoicesColumns(): PoTableColumn[]{
@@ -274,14 +277,26 @@ export class InvoicesService {
       ];
     }
   
-    public async GetInvoicesItems(filter?: string): Promise<any[]>{    
-      const salesmanId = localStorage.getItem('salesmanId');
-      const url: string = `${environment.apiDomain}/invoices?`+
-        `salesmanId=${salesmanId}` + 
-        `&filter=${filter}`;
-  
+    public async GetInvoicesItems(filter?: string): Promise<Invoice[]> {
+      const session = this.authService.getSession();
+      const salesmanId = session?.sessionInfo?.userId;
+    
+      if (!salesmanId) {
+        console.warn('Usuário não está logado ou sessão inválida.');
+        return [];
+      }
+    
+      const params = new URLSearchParams();
+      params.set('salesmanId', salesmanId);
+      if (filter) {
+        params.set('filter', filter);
+      }
+    
+      const url = `${environment.apiDomain}/invoices?${params.toString()}`;
+    
       const response: any = await this.http.get(url, environment.header).toPromise();
-      
-      return response['items'];
-    } 
+    
+      return response?.items ?? [];
+    }
+    
 }

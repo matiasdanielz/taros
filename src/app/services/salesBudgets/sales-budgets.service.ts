@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { CustomersService } from '../customers/customers.service';
 import { ProductsService } from '../products/products.service';
 import { CookieService } from 'ngx-cookie-service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ constructor(
     private http: HttpClient,
     private customersService: CustomersService,
     private productsService: ProductsService,
-    private cookieService: CookieService
+    private authService: AuthService
   ) { }
 
   public async GetSalesBudgetTaxes(body: any) {
@@ -109,23 +110,38 @@ constructor(
         columns: [
           {
             property: 'id',
-            label: 'Codigo'
+            label: 'Codigo',
+            width: '10%'
           },
           {
             property: 'name',
             label: 'Nome'
+          },
+          {
+            property: 'fantasyName',
+            label: 'Nome Fantasia'
+          },
+          {
+            property: 'brazilianTaxId',
+            label: 'CNPJ'
           }
         ],
         required: true,
         showRequired: true,
+        format:  ["id", "name"],
         gridColumns: 6,
         gridSmColumns: 12
       },
       {
+        property: 'customerAdress',
+        label: 'Endereço Do Cliente',
+        gridColumns: 6,
+        readonly: true
+      },
+      {
         property: 'CJ_TPFRETE',
         label: 'Tipo De Frete',
-        required: true,
-        showRequired: true,
+        readonly: true,
         options: [
           {
             value: 'C',
@@ -156,10 +172,33 @@ constructor(
         gridSmColumns: 12
       },
       {
+        property: 'paymentCondition',
+        label: 'Condição De Pagamento',
+        readonly: true,
+        gridColumns: 6
+      },
+      {
+        property: 'priceTable',
+        label: 'Tabela De Preço',
+        readonly: true,
+        gridColumns: 6
+      },
+      {
+        property: 'carrier',
+        label: 'Transportadora',
+        readonly: true,
+        gridColumns: 6
+      },
+      {
+        divider: 'Outros',
+        property: 'shopOrderId',
+        label: 'Codigo Do Pedido em Ecommerce',
+        gridColumns: 12
+      },
+      {
         property: 'CJ_MENNOTA',
         label: 'Msg Nota',
         gridColumns: 12,
-        gridSmColumns: 12,
         rows: 3
       },
     ];
@@ -288,8 +327,8 @@ constructor(
   }
 
   public async GetSalesBudgetsItems(filter?: string): Promise<any[]> {
-    const salesmanId = localStorage.getItem('salesmanId');
-    const url: string = `${environment.apiDomain}/salesBudgets?` +
+    const session = this.authService.getSession();
+    const salesmanId = session?.sessionInfo?.userId;    const url: string = `${environment.apiDomain}/salesBudgets?` +
       `salesmanId=${salesmanId}` +
       `&filter=${filter}`;
 
@@ -306,7 +345,7 @@ constructor(
   **********
   */
 
-  public GetSalesBudgetsItemsFields(): PoDynamicFormField[]{
+  public GetSalesBudgetsItemsFields(customerId: string): PoDynamicFormField[]{
     return [
       {
         property: 'CK_ITEM',
@@ -330,6 +369,9 @@ constructor(
             label: 'Descrição'
           }
         ],
+        params: {
+          customerId: customerId
+        },
         required: true,
         showRequired: true,
         gridColumns: 6,

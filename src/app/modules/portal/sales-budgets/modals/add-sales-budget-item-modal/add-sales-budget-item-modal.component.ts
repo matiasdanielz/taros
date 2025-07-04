@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { PoModalComponent, PoDynamicFormField } from '@po-ui/ng-components';
+import { PoModalComponent, PoDynamicFormField, PoDynamicFormFieldChanged, PoDynamicFormValidation } from '@po-ui/ng-components';
+import { ProductsService } from 'src/app/services/products/products.service';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 
 @Component({
@@ -17,15 +18,18 @@ export class AddSalesBudgetItemModalComponent {
   protected salesBudgetValue: any = {};
 
   constructor(
-    private salesBudgetsService: SalesBudgetsService
+    private salesBudgetsService: SalesBudgetsService,
+    private productsService: ProductsService
   ){
-    this.salesBudgetsFields = salesBudgetsService.GetSalesBudgetsItemsFields();
   }
 
-  public open(item: string){
+  public open(item: string, customerId: string){
     this.salesBudgetValue['C6_ITEM'] = item;
     this.salesBudgetValue['CK_ITEM'] = item;
     this.salesBudgetValue['CK_OPER'] = "01";
+    this.salesBudgetValue['CJ_CLIENTE'] = customerId;
+
+    this.salesBudgetsFields = this.salesBudgetsService.GetSalesBudgetsItemsFields(this.salesBudgetValue['CJ_CLIENTE']);
 
     this.addSalesBudgetItemModal.open();
   }
@@ -44,4 +48,15 @@ export class AddSalesBudgetItemModalComponent {
     // Limpa o formulário, se necessário
     this.salesBudgetValue = {};
   }
+
+    protected async onChangeFields(changedValue: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation>{
+      if(changedValue['property'] == "CK_PRODUTO"){
+        const response = await this.productsService.getProductsItems(changedValue['value']['CK_PRODUTO']);
+        const selectedProduct = response[0];
+  
+        this.salesBudgetValue['B1_DESC'] = selectedProduct['label'];
+      }
+  
+      return {};
+    }
 }

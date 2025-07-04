@@ -4,10 +4,9 @@ import { PortalComponent } from './portal/portal.component';
 import { CustomersComponent } from './customers/customers.component';
 import { MenubarComponent } from './menubar/menubar.component';
 import { PortalRoutingModule } from './portal-routing.module';
-import { PoModule, PoPageModule } from '@po-ui/ng-components';
+import { PoModule } from '@po-ui/ng-components';
 import { SalesRequestsComponent } from './sales-requests/sales-requests.component';
 import { PoTemplatesModule } from '@po-ui/ng-templates';
-import { NavbarComponent } from './navbar/navbar.component';
 import { InvoicesComponent } from './invoices/invoices.component';
 import { ProfileComponent } from './profile/profile.component';
 import { CommissionsComponent } from './commissions/commissions.component';
@@ -31,7 +30,6 @@ import { FormsModule } from '@angular/forms';
     CustomersComponent,
     MenubarComponent,
     SalesRequestsComponent,
-    NavbarComponent,
     InvoicesComponent,
     ProfileComponent,
     CommissionsComponent,

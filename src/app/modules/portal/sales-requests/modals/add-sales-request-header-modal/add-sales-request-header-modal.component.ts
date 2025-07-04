@@ -1,6 +1,8 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import {
   PoDynamicFormComponent,
+  PoDynamicFormFieldChanged,
+  PoDynamicFormValidation,
   PoModalComponent,
   PoNotificationService,
   PoStepperComponent,
@@ -11,6 +13,7 @@ import {
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { AddSalesRequestItemModalComponent } from '../add-sales-request-item-modal/add-sales-request-item-modal.component';
 import { EditSalesRequestItemModalComponent } from '../edit-sales-request-item-modal/edit-sales-request-item-modal.component';
+import { CustomersService } from 'src/app/services/customers/customers.service';
 
 enum Step {
   Header = 0,
@@ -30,7 +33,7 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   @ViewChild('addSalesRequestHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
   @ViewChild('salesRequestStepper', { static: true }) private stepperComponent!: PoStepperComponent;
 
-  @Output() onAdd = new EventEmitter<any>(); // <<< Aqui emitimos quando o item for criado
+  @Output() onAdd = new EventEmitter<any>();
 
   protected salesRequestFields: any[] = [];
   protected salesRequestValue: any = {};
@@ -57,7 +60,8 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
 
   constructor(
     private salesRequestsService: SalesRequestsService,
-    private poNotification: PoNotificationService
+    private poNotification: PoNotificationService,
+    private customersService: CustomersService
   ) {}
 
   ngOnInit(): void {
@@ -108,7 +112,7 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
 
   protected openItemModal(): void {
     const nextItemNumber = this.getNextItemNumber();
-    this.addItemModal.open(nextItemNumber);
+    this.addItemModal.open(nextItemNumber, this.salesRequestValue['C5_CLIENTE']);
   }
 
   private getNextItemNumber(): string {
@@ -121,25 +125,13 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
   }
 
   public async onSalesRequestItemCreated(item: any): Promise<void> {
-    // Adiciona o item à lista
-    this.tableItems = [...this.tableItems, item];
-  
-    // Clona os dados do cabeçalho
-    const headerData = { ...this.salesRequestValue };
+    this.tableItems = [...this.tableItems.filter(i => i.C6_ITEM !== 'TOTALIZADOR'), item];
 
-    // Define campos obrigatórios
-    headerData['C5_LOJACLI'] = '01';
-    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
-    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
-    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
-    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
-
+    const headerData = this.buildHeaderData();
     headerData['ITENS'] = this.tableItems;
-  
-    // Chama o serviço e espera a resposta
+
     const response: any = await this.salesRequestsService.GetSalesRequestTaxes(headerData);
-  
-    // Atualiza os itens da tabela com os dados retornados
+
     if (response && Array.isArray(response.ITENS)) {
       const updatedItems = this.tableItems.map((originalItem) => {
         const matchedItem = response.ITENS.find(
@@ -147,22 +139,22 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
         );
         return matchedItem ? { ...originalItem, ...matchedItem } : originalItem;
       });
-  
-      this.tableItems = [];
-      this.tableItems = updatedItems;
+
+      this.tableItems = [...updatedItems, this.buildTotalizerItem(updatedItems)];
       this.salesRequestValue = headerData;
     }
   }
 
   public onSalesRequestItemEdited(item: any): void {
-    this.tableItems = this.tableItems.map(existing =>
-      existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing
-    );
+    const filtered = this.tableItems.filter(i => i.C6_ITEM !== 'TOTALIZADOR');
+    this.tableItems = filtered.map(existing => existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing);
+    this.tableItems = [...this.tableItems, this.buildTotalizerItem(this.tableItems)];
   }
 
   private removeItem(itemToRemove: any): void {
-    this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
+    this.tableItems = this.tableItems.filter(item => item !== itemToRemove && item.C6_ITEM !== 'TOTALIZADOR');
     this.renumberItems();
+    this.tableItems = [...this.tableItems, this.buildTotalizerItem(this.tableItems)];
   }
 
   private renumberItems(): void {
@@ -170,6 +162,27 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
       ...item,
       C6_ITEM: (index + 1).toString().padStart(2, '0')
     }));
+  }
+
+  private buildTotalizerItem(items: any[]): any {
+    const total = {
+      C6_ITEM: 'TOTALIZADOR',
+      C6_PRODUTO: '',
+      B1_DESC: '',
+      C6_QTDVEN: this.sum(items, 'C6_QTDVEN'),
+      IT_PRCUNI: this.sum(items, 'IT_PRCUNI'),
+      IT_VALMERC: this.sum(items, 'IT_VALMERC'),
+      IT_VALICM: this.sum(items, 'IT_VALICM'),
+      IT_VALSOL: this.sum(items, 'IT_VALSOL'),
+      IT_VALIPI: this.sum(items, 'IT_VALIPI'),
+      IT_DIFAL: this.sum(items, 'IT_DIFAL'),
+      IT_SLDPROD: this.sum(items, 'IT_SLDPROD')
+    };
+    return total;
+  }
+
+  private sum(items: any[], prop: string): number {
+    return items.reduce((acc, item) => acc + (parseFloat(item[prop]) || 0), 0);
   }
 
   protected isCreateButtonDisabled(): boolean {
@@ -197,10 +210,35 @@ export class AddSalesRequestHeaderModalComponent implements OnInit {
 
   private buildSalesRequestPayload(): any {
     const payload = { ...this.salesRequestValue };
-
     payload['C5_LOJACLI'] = '01';
-    payload['ITENS'] = this.tableItems;
-
+    payload['ITENS'] = this.tableItems.filter(item => item.C6_ITEM !== 'TOTALIZADOR');
     return payload;
+  }
+
+  private buildHeaderData(): any {
+    return {
+      ...this.salesRequestValue,
+      C5_LOJACLI: '01',
+      C5_TABELA: this.salesRequestValue['C5_TABELA'] ?? '999',
+      C5_TIPO: this.salesRequestValue['C5_TIPO'] ?? 'N',
+      C5_TPFRETE: this.salesRequestValue['C5_TPFRETE'] ?? 'C',
+      C5_CONDPAG: this.salesRequestValue['C5_CONDPAG'] ?? '002'
+    };
+  }
+
+  protected async onChangeFields(changedValue: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
+    if (changedValue['property'] === 'C5_CLIENTE') {
+      const selectedCustomerId = changedValue['value']['id'];
+      const response: any = await this.customersService.GetCustomersItems(selectedCustomerId);
+      const selectedCustomer = response[0];
+
+      this.salesRequestValue['customerAdress'] = selectedCustomer['adress'];
+      this.salesRequestValue['paymentCondition'] = selectedCustomer['paymentCondition'];
+      this.salesRequestValue['priceTable'] = selectedCustomer['priceTable'];
+      this.salesRequestValue['carrier'] = selectedCustomer['carrier'];
+      this.salesRequestValue['C5_TPFRETE'] = selectedCustomer['C5_TPFRETE'];
+    }
+
+    return {};
   }
 }

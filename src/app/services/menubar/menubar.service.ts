@@ -1,8 +1,7 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { PoMenuItem } from '@po-ui/ng-components';
-import { CookieService } from 'ngx-cookie-service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +10,7 @@ export class MenubarService {
 
   constructor(
     private router: Router,
-    private cookieService: CookieService
+    private authService: AuthService
   ) { }
 
   public getMenubarItems(): PoMenuItem[]{
@@ -71,8 +70,9 @@ export class MenubarService {
     
   }
 
-  private async LogOut(){
-    localStorage.setItem('salesmanId', '');
-    this.router.navigate(['']);
+  private async LogOut(): Promise<void> {
+    this.authService.logout();
+    this.router.navigate(['/Authentication']);
   }
+  
 }

@@ -19,7 +19,7 @@ export class EditSalesRequestItemModalComponent {
   constructor(
     private salesRequestService: SalesRequestsService
   ){
-    this.salesRequestsFields = salesRequestService.GetSalesRequestsItemsFields();
+    this.salesRequestsFields = salesRequestService.GetSalesRequestsItemsFields(this.salesRequestValue['customerId']);
   }
 
   public open(itemToEdit: any){

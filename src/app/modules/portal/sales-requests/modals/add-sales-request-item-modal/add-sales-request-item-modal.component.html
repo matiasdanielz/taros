@@ -7,7 +7,8 @@
     <po-dynamic-form
         #salesRequestAddForm
         [p-fields]="salesRequestsFields"
-        [p-value]="salesRequestValue">
+        [p-value]="salesRequestValue"
+        [p-validate]="onChangeFields.bind(this)">
     </po-dynamic-form>
     <po-modal-footer
         [p-disabled-align]="false">
@@ -19,7 +20,7 @@
         <po-button
             p-kind="primary"
             p-label="Confirmar"
-            (p-click)="OnCreateSalesRequestItem()"
+            (p-click)="onCreateSalesRequestItem()"
             [p-disabled]="salesRequestAddForm.form.invalid!">
         </po-button>
     </po-modal-footer>

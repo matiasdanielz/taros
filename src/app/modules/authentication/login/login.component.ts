@@ -1,9 +1,8 @@
 import { Component, ViewChild } from '@angular/core';
-import { ForgotPasswordComponent } from '../forgot-password/forgot-password.component';
-import { LoginService } from './login.service';
 import { Router } from '@angular/router';
-import { CookieService } from 'ngx-cookie-service';
 import { PoNotificationService } from '@po-ui/ng-components';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { ForgotPasswordComponent } from '../forgot-password/forgot-password.component';
 
 @Component({
   selector: 'app-login',
@@ -11,37 +10,38 @@ import { PoNotificationService } from '@po-ui/ng-components';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  @ViewChild('forgotPassword', {static: true}) forgotPassword!: ForgotPasswordComponent;
+  @ViewChild('forgotPassword', { static: true }) forgotPassword!: ForgotPasswordComponent;
 
   constructor(
-    private loginService: LoginService,
     private router: Router,
-    private cookieService: CookieService,
-    private poNotification: PoNotificationService
-  ){
+    private poNotification: PoNotificationService,
+    private authService: AuthService
+  ) {}
 
-  }
-
-  protected recoveryPassword(){
+  protected recoveryPassword(): void {
     this.forgotPassword.openModal();
   }
 
-  protected async CheckLogin(formData: any) {
+  protected async CheckLogin(formData: any): Promise<void> {
     const requestJson = {
-      "user": formData['login'],
-      "password": formData['password']
+      user: formData['login'],
+      password: formData['password']
     };
 
-    const response: any = await this.loginService.DoLogin(requestJson);
+    try {
+      const response = await this.authService.DoLogin(requestJson);
 
-    if (response['isLogged'] === true) {
-      localStorage.setItem('salesmanId', response['sessionInfo']['userId']);
+      if (response?.isLogged) {
+        // Sessão já é salva dentro de DoLogin, mas se quiser garantir, use:
+        // this.authService.setSession(response);
 
-      setTimeout(() => {
         this.router.navigate(['/Portal']);
-      }, 100); // pequena espera
-    }else{
-      this.poNotification.error("Usuario ou senha incorretos");
+      } else {
+        this.poNotification.error('Usuário ou senha incorretos');
+      }
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      this.poNotification.error('Erro ao tentar se conectar. Tente novamente.');
     }
   }
 }

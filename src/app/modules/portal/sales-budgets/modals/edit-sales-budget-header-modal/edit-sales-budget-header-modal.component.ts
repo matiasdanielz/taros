@@ -10,11 +10,14 @@ import {
   PoStepperComponent,
   PoTableColumn,
   PoTableAction,
-  PoNotificationService
+  PoNotificationService,
+  PoDynamicFormFieldChanged,
+  PoDynamicFormValidation
 } from '@po-ui/ng-components';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { AddSalesBudgetItemModalComponent } from '../add-sales-budget-item-modal/add-sales-budget-item-modal.component';
 import { EditSalesBudgetItemModalComponent } from '../edit-sales-budget-item-modal/edit-sales-budget-item-modal.component';
+import { CustomersService } from 'src/app/services/customers/customers.service';
 
 enum Step {
   Header = 0,
@@ -61,7 +64,8 @@ export class EditSalesBudgetHeaderModalComponent {
 
   constructor(
     private salesBudgetsService: SalesBudgetsService,
-    private poNotification: PoNotificationService
+    private poNotification: PoNotificationService,
+    private customersService: CustomersService
   ) { }
 
   ngOnInit(): void {
@@ -77,9 +81,12 @@ export class EditSalesBudgetHeaderModalComponent {
       CJ_LOJA: selectedItem['store'],
     };
 
+    await this.onChangeFields({"property": "CJ_CLIENTE", value: this.salesBudgetValue['CJ_CLIENTE']});
+
     this.tableItems = selectedItem['items'];
     this.currentStep = Step.Header;
     await this.calculateTaxesForItems();
+    this.updateTotalsRow();
     this.modalHeader.open();
   }
 
@@ -113,12 +120,12 @@ export class EditSalesBudgetHeaderModalComponent {
   }
 
   protected openItemEditModal(selectedItem: any): void {
-    this.editItemModal.open(selectedItem);
+    this.editItemModal.open(selectedItem, this.salesBudgetValue['CJ_CLIENTE']);
   }
 
   protected openItemModal(): void {
     const nextItemNumber = this.getNextItemNumber();
-    this.addItemModal.open(nextItemNumber);
+    this.addItemModal.open(nextItemNumber, this.salesBudgetValue['CJ_CLIENTE']);
   }
 
   private getNextItemNumber(): string {
@@ -126,28 +133,34 @@ export class EditSalesBudgetHeaderModalComponent {
       return '01';
     }
 
-    const maxItem = Math.max(...this.tableItems.map(item => parseInt(item['CK_ITEM'], 10) || 0));
+    const maxItem = Math.max(...this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR').map(item => parseInt(item['CK_ITEM'], 10) || 0));
     return (maxItem + 1).toString().padStart(2, '0');
   }
 
   public async onSalesBudgetItemCreated(item: any): Promise<void> {
     item.__isNew = true;
+    this.removeTotalsRow();
     this.tableItems = [...this.tableItems, item];
     await this.calculateTaxesForItems();
+    this.updateTotalsRow();
   }
 
   public async onSalesBudgetItemEdited(item: any): Promise<void> {
+    this.removeTotalsRow();
     this.tableItems = this.tableItems.map(existing =>
       existing['CK_ITEM'] === item['CK_ITEM'] ? item : existing
     );
     await this.calculateTaxesForItems();
+    this.updateTotalsRow();
   }
 
   private removeItem(itemToRemove: any): void {
+    this.removeTotalsRow();
     itemToRemove['LINPOS'] = itemToRemove['CK_ITEM'];
     itemToRemove['AUTDELETA'] = 'S';
     this.removedItemsFromTableItems.push(itemToRemove);
     this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
+    this.updateTotalsRow();
   }
 
   protected isCreateButtonDisabled(): boolean {
@@ -183,7 +196,7 @@ export class EditSalesBudgetHeaderModalComponent {
 
     payload['CJ_LOJACLI'] = '01';
 
-    const currentItems = this.tableItems.map(item => {
+    const currentItems = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR').map(item => {
       const newItem = { ...item };
       if (!newItem.__isNew) {
         newItem.LINPOS = item['CK_ITEM'];
@@ -220,14 +233,7 @@ export class EditSalesBudgetHeaderModalComponent {
     headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
     headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';
     headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
-
-    /*headerData['C5_CLIENTE'] = headerData['CJ_CLIENTE'];
-    headerData['C5_LOJACLI'] = '01';
-    headerData['C5_TABELA'] = headerData['C5_TABELA'] ?? '999';
-    headerData['C5_TIPO'] = headerData['C5_TIPO'] ?? 'N';
-    headerData['C5_TPFRETE'] = headerData['C5_TPFRETE'] ?? 'C';
-    headerData['C5_CONDPAG'] = headerData['C5_CONDPAG'] ?? '002';*/
-    headerData['ITENS'] = this.tableItems;
+    headerData['ITENS'] = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR');
 
     const response: any = await this.salesBudgetsService.GetSalesBudgetTaxes(headerData);
 
@@ -242,6 +248,56 @@ export class EditSalesBudgetHeaderModalComponent {
 
       this.tableItems = updatedItems;
       this.salesBudgetValue = headerData;
+      this.updateTotalsRow();
     }
   }
-}
+
+  protected async onChangeFields(changedValue: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
+    if (changedValue['property'] == "CJ_CLIENTE") {
+      const selectedCustomerId = changedValue['value']['id'];
+      const response: any = await this.customersService.GetCustomersItems(selectedCustomerId);
+      const selectedCustomer = response[0];
+
+      this.salesBudgetValue['customerAdress'] = selectedCustomer['adress'];
+      this.salesBudgetValue['paymentCondition'] = selectedCustomer['paymentCondition'];
+      this.salesBudgetValue['priceTable'] = selectedCustomer['priceTable'];
+      this.salesBudgetValue['shippingMethod'] = selectedCustomer['shippingMethod'];
+      this.salesBudgetValue['CJ_TPFRETE'] = selectedCustomer['shippingMethod'];
+    }
+
+    return {};
+  }
+
+  private removeTotalsRow(): void {
+    this.tableItems = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR');
+  }
+
+  private sum(items: any[], property: string): number {
+    return items.reduce((acc, item) => {
+      const val = parseFloat(item[property]);
+      return acc + (isNaN(val) ? 0 : val);
+    }, 0);
+  }
+
+  private buildTotalizerItem(items: any[]): any {
+    return {
+      CK_ITEM: 'TOTALIZADOR',
+      CK_PRODUTO: '',
+      B1_DESC: '',
+      CK_QTDVEN: this.sum(items, 'CK_QTDVEN').toFixed(2),
+      IT_PRCUNI: this.sum(items, 'IT_PRCUNI').toFixed(2),
+      IT_VALMERC: this.sum(items, 'IT_VALMERC').toFixed(2),
+      IT_VALICM: this.sum(items, 'IT_VALICM').toFixed(2),
+      IT_VALSOL: this.sum(items, 'IT_VALSOL').toFixed(2),
+      IT_VALIPI: this.sum(items, 'IT_VALIPI').toFixed(2),
+      IT_DIFAL: this.sum(items, 'IT_DIFAL').toFixed(2),
+      IT_SLDPROD: this.sum(items, 'IT_SLDPROD').toFixed(2)
+    };
+  }
+
+  private updateTotalsRow(): void {
+    this.removeTotalsRow();
+    const totalRow = this.buildTotalizerItem(this.tableItems);
+    this.tableItems = [...this.tableItems, totalRow];
+  }
+} 

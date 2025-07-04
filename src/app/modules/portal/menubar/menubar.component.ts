@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { PoMenuItem } from '@po-ui/ng-components';
-import { MenubarService } from './menubar.service';
+import { MenubarService } from 'src/app/services/menubar/menubar.service';
 
 @Component({
   selector: 'app-menubar',

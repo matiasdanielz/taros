@@ -1,13 +1,12 @@
 import { CanActivateFn, Router } from '@angular/router';
-import { CookieService } from 'ngx-cookie-service';
 import { inject } from '@angular/core';
-
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 export const portalGuard: CanActivateFn = (route, state) => {
-  const cookieService = inject(CookieService);
   const router = inject(Router);
+  const authService = inject(AuthService);
 
-  const isLogged = localStorage.getItem('salesmanId') !== '';
+  const isLogged = authService.isLoggedIn();
 
   if (!isLogged) {
     router.navigate(['/Authentication']);

@@ -10,11 +10,14 @@ import {
   PoStepperComponent,
   PoTableColumn,
   PoTableAction,
-  PoNotificationService
+  PoNotificationService,
+  PoDynamicFormFieldChanged,
+  PoDynamicFormValidation
 } from '@po-ui/ng-components';
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { AddSalesRequestItemModalComponent } from '../add-sales-request-item-modal/add-sales-request-item-modal.component';
 import { EditSalesRequestItemModalComponent } from '../edit-sales-request-item-modal/edit-sales-request-item-modal.component';
+import { CustomersService } from 'src/app/services/customers/customers.service';
 
 enum Step {
   Header = 0,
@@ -61,10 +64,11 @@ export class EditSalesRequestHeaderModalComponent {
 
   constructor(
     private salesRequestsService: SalesRequestsService,
-    private poNotification: PoNotificationService
+    private poNotification: PoNotificationService,
+    private customersService: CustomersService
   ) { }
 
-  ngOnInit(): void {
+  ngOnInit(): void{
     this.tableColumns = this.salesRequestsService.GetSalesRequestsItemsColumns();
     this.salesRequestFields = this.salesRequestsService.GetSalesRequestsHeaderFields();
   }
@@ -73,12 +77,15 @@ export class EditSalesRequestHeaderModalComponent {
     this.salesRequestValue = {
       C5_NUM: selectedItem['orderNumber'],
       C5_CLIENTE: selectedItem['customerCode'],
-      C5_TPFRETE: selectedItem['shippingMethod']
     };
+
+    await this.onChangeFields({"property": "C5_CLIENTE", value: this.salesRequestValue['C5_CLIENTE']});
 
     this.tableItems = selectedItem['items'];
     this.currentStep = Step.Header;
     await this.calculateTaxesForItems();
+    this.addTotalizerRow();
+
     this.modalHeader.open();
   }
 
@@ -117,7 +124,7 @@ export class EditSalesRequestHeaderModalComponent {
 
   protected openItemModal(): void {
     const nextItemNumber = this.getNextItemNumber();
-    this.addItemModal.open(nextItemNumber);
+    this.addItemModal.open(nextItemNumber, this.salesRequestValue['C5_CLIENTE']);
   }
 
   private getNextItemNumber(): string {
@@ -147,6 +154,31 @@ export class EditSalesRequestHeaderModalComponent {
     itemToRemove['AUTDELETA'] = 'S';
     this.removedItemsFromTableItems.push(itemToRemove);
     this.tableItems = this.tableItems.filter(item => item !== itemToRemove);
+    this.addTotalizerRow();
+  }
+
+  private addTotalizerRow(): void {
+    this.tableItems = this.tableItems.filter(item => item['C6_ITEM'] !== 'TOTALIZADOR');
+
+    const totalizer = {
+      C6_ITEM: 'TOTALIZADOR',
+      B1_DESC: 'TOTALIZADOR',
+      C6_QTDVEN: this.sumField('C6_QTDVEN'),
+      IT_PRCUNI: this.sumField('IT_PRCUNI'),
+      IT_VALMERC: this.sumField('IT_VALMERC'),
+      IT_VALICM: this.sumField('IT_VALICM'),
+      IT_VALSOL: this.sumField('IT_VALSOL'),
+      IT_VALIPI: this.sumField('IT_VALIPI'),
+      IT_DIFAL: this.sumField('IT_DIFAL')
+    };
+
+    this.tableItems.push(totalizer);
+  }
+
+  private sumField(field: string): number {
+    return this.tableItems
+      .filter(item => item['C6_ITEM'] !== 'TOTALIZADOR')
+      .reduce((sum, item) => sum + (parseFloat(item[field]) || 0), 0);
   }
 
   protected isCreateButtonDisabled(): boolean {
@@ -182,14 +214,16 @@ export class EditSalesRequestHeaderModalComponent {
 
     payload['C5_LOJACLI'] = '01';
 
-    const currentItems = this.tableItems.map(item => {
-      const newItem = { ...item };
-      if (!newItem.__isNew) {
-        newItem.LINPOS = item['C6_ITEM'];
-        newItem.AUTDELETA = 'N';
-      }
-      return newItem;
-    });
+    const currentItems = this.tableItems
+      .filter(item => item['C6_ITEM'] !== 'TOTALIZADOR')
+      .map(item => {
+        const newItem = { ...item };
+        if (!newItem.__isNew) {
+          newItem.LINPOS = item['C6_ITEM'];
+          newItem.AUTDELETA = 'N';
+        }
+        return newItem;
+      });
 
     payload['ITENS'] = [...currentItems, ...this.removedItemsFromTableItems];
 
@@ -230,7 +264,24 @@ export class EditSalesRequestHeaderModalComponent {
       }
 
       this.tableItems = updatedItems;
+      this.addTotalizerRow();
       this.salesRequestValue = headerData;
     }
+  }
+
+  protected async onChangeFields(changedValue: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation>{
+    if(changedValue['property'] == "C5_CLIENTE"){
+      const selectedCustomerId = changedValue['value']['id'];
+      const response: any = await this.customersService.GetCustomersItems(selectedCustomerId);
+      const selectedCustomer = response[0];
+
+      this.salesRequestValue['customerAdress'] = selectedCustomer['adress'];
+      this.salesRequestValue['paymentCondition'] = selectedCustomer['paymentCondition'];
+      this.salesRequestValue['priceTable'] = selectedCustomer['priceTable'];
+      this.salesRequestValue['shippingMethod'] = selectedCustomer['shippingMethod'];
+      this.salesRequestValue['C5_TPFRETE'] = selectedCustomer['shippingMethod'];
+    }
+
+    return {};
   }
 }

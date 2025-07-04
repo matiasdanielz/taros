@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PoDynamicViewField } from '@po-ui/ng-components';
-import { ProfileService } from './profile.service';
+import { User } from 'src/app/models/user/user';
+import { ProfileService } from 'src/app/services/profile/profile.service';
 
 @Component({
   selector: 'app-profile',
@@ -11,7 +12,7 @@ export class ProfileComponent implements OnInit{
   protected user: any = {};
 
   protected profileFields: PoDynamicViewField[] = [];
-  protected profileValue: any = {};
+  protected profileValue: User = {};
 
   constructor(
     private profileService: ProfileService

@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { PoChartSerie, PoChartType, PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
-import { CommissionsService } from './commissions.service';
+import { Commission, CommissionItem } from 'src/app/models/commission/commission';
+import { CommissionsService } from 'src/app/services/commissions/commissions.service';
 
 @Component({
   selector: 'app-commissions',
@@ -26,14 +27,16 @@ export class CommissionsComponent implements OnInit{
   // Tabela
   protected tableHeight: number = window.innerHeight / 2;
   protected commissionsHeaderFields: PoDynamicViewField[] = [];
-  protected currentCommissionHeaderInView: any = {};
+  protected currentCommissionHeaderInView: Commission = {};
   protected commissionsHeaderColumns: PoTableColumn[] = [];
-  protected commissionsHeaderItems: any[] = [];
+  protected commissionsHeaderItems: Commission[] = [];
 
   protected commissionsItemsColumns: PoTableColumn[] = [];
-  protected commissionsItems: any[] = [];
+  protected commissionsItems: CommissionItem[] = [];
 
-  constructor(private commissionsService: CommissionsService){
+  constructor(
+    private commissionsService: CommissionsService
+  ){
     this.commissionsHeaderColumns = this.commissionsService.GetCommissionsHeaderColumns();
     this.commissionsItemsColumns = this.commissionsService.GetCommissionsItemsColumns();
     this.commissionsHeaderFields = this.commissionsService.GetCommissionsHeaderFields();
@@ -51,12 +54,12 @@ export class CommissionsComponent implements OnInit{
     this.commissionsSeries = [
       {
         label: 'Vendas',
-        data: last6Items.map(item => item.salesBase),
+        data: last6Items.map(item => item.salesBase!),
         color: 'color-03'
       },
       {
         label: 'Comissão',
-        data: last6Items.map(item => item.commissionValue),
+        data: last6Items.map(item => item.commissionValue!),
         color: 'color-08'
       }
     ];

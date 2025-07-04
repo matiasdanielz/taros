@@ -5,6 +5,7 @@ import { AddSalesBudgetHeaderModalComponent } from './modals/add-sales-budget-he
 import { EditSalesBudgetHeaderModalComponent } from './modals/edit-sales-budget-header-modal/edit-sales-budget-header-modal.component';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { CookieService } from 'ngx-cookie-service';
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 @Component({
   selector: 'app-sales-budgets',
@@ -67,7 +68,7 @@ export class SalesBudgetsComponent {
   constructor(
     private salesBudgetsService: SalesBudgetsService,
     private poNotification: PoNotificationService,
-    private cookieService: CookieService
+    private authService: AuthService
   ) {
     this.salesBudgetsColumns = this.salesBudgetsService.GetSalesBudgetsHeaderColumns();
     this.salesBudgetsFields = this.salesBudgetsService.GetSalesBudgetsHeaderFields();
@@ -97,23 +98,36 @@ export class SalesBudgetsComponent {
     this.salesBudgetAprovalModal.open();
   }
 
-  protected async aproveSalesBudget() {
-    const salesmanId = localStorage.getItem('salesmanId');
+  protected async aproveSalesBudget(): Promise<void> {
+    const session = this.authService.getSession();
+    const salesmanId = session?.sessionInfo?.userId;
+  
+    if (!salesmanId) {
+      this.poNotification.error('Sessão expirada ou inválida. Faça login novamente.');
+      return;
+    }
+  
     const requestJson = {
-      "vendedor": salesmanId,
-      "CJ_NUM": this.currentSalesBudgetInView['orderNumber']
+      vendedor: salesmanId,
+      CJ_NUM: this.currentSalesBudgetInView?.orderNumber
     };
-
-    const response: any = await this.salesBudgetsService.AproveSalesBudget(requestJson);
-
-    if(response['codigo'] == 201){
-      this.poNotification.success('Registro Aprovado Com Sucesso');
-      await this.loadSalesBudgets();
-      this.salesBudgetAprovalModal.close();
-    }else{
-      this.poNotification.error(response['mensagem']);
+  
+    try {
+      const response: any = await this.salesBudgetsService.AproveSalesBudget(requestJson);
+  
+      if (response?.codigo === 201) {
+        this.poNotification.success('Registro Aprovado com Sucesso');
+        await this.loadSalesBudgets();
+        this.salesBudgetAprovalModal.close();
+      } else {
+        this.poNotification.error(response?.mensagem || 'Erro ao aprovar orçamento.');
+      }
+    } catch (error) {
+      this.poNotification.error('Erro inesperado ao aprovar o orçamento.');
+      console.error(error);
     }
   }
+  
 
   protected async deleteItem(): Promise<void> {
     const requestJson = {
