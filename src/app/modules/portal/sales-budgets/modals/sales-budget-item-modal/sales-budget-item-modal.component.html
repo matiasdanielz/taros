@@ -1,0 +1,28 @@
+<po-modal
+  #salesBudgetItemModal
+  [p-title]="isEditMode ? 'Editar Item Do Orçamento De Venda' : 'Criar Item Do Orçamento De Venda'"
+  p-size="xl"
+  class="createSalesBudgetModal">
+
+  <po-dynamic-form
+    #salesBudgetForm
+    [p-fields]="salesBudgetsFields"
+    [p-value]="salesBudgetValue"
+    [p-validate]="onChangeFields.bind(this)">
+  </po-dynamic-form>
+
+  <po-modal-footer [p-disabled-align]="false">
+    <po-button
+      [p-danger]="true"
+      p-label="Cancelar"
+      (p-click)="close()">
+    </po-button>
+
+    <po-button
+      p-kind="primary"
+      [p-label]="isEditMode ? 'Salvar' : 'Confirmar'"
+      (p-click)="confirm()"
+      [p-disabled]="salesBudgetForm.form.invalid!">
+    </po-button>
+  </po-modal-footer>
+</po-modal>

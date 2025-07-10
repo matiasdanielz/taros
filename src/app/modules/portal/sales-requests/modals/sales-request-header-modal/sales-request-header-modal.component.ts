@@ -9,7 +9,8 @@ import {
   PoTableAction,
   PoNotificationService,
   PoDynamicFormFieldChanged,
-  PoDynamicFormValidation
+  PoDynamicFormValidation,
+  PoDynamicViewField
 } from '@po-ui/ng-components';
 
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
@@ -35,15 +36,17 @@ export class SalesRequestHeaderModalComponent {
 
   @Output() onSave = new EventEmitter<any>();
 
-  isEditMode = false;
-  currentStep: Step = Step.Header;
-  selectedEditItem: any = null;
+  protected isEditMode = false;
+  protected currentStep: Step = Step.Header;
+  protected selectedEditItem: any = null;
+  protected salesRequestItemFields: PoDynamicViewField[] = [];
+  protected salesRequestItemsSum: any = {};
 
-  salesRequestFields: any[] = [];
-  salesRequestValue: any = {};
-  tableColumns: PoTableColumn[] = [];
-  tableItems: any[] = [];
-  removedItemsFromTableItems: any[] = [];
+  protected salesRequestFields: any[] = [];
+  protected salesRequestValue: any = {};
+  protected tableColumns: PoTableColumn[] = [];
+  protected tableItems: any[] = [];
+  protected removedItemsFromTableItems: any[] = [];
 
   readonly tableActions: PoTableAction[] = [
     {
@@ -66,6 +69,7 @@ export class SalesRequestHeaderModalComponent {
   ) {}
 
   ngOnInit(): void {
+    this.salesRequestItemFields = this.salesRequestsService.GetSalesRequestsItemsDynamicViewFields();
     this.tableColumns = this.salesRequestsService.GetSalesRequestsItemsColumns();
     this.salesRequestFields = this.salesRequestsService.GetSalesRequestsHeaderFields();
   }
@@ -261,11 +265,8 @@ export class SalesRequestHeaderModalComponent {
   private addTotalizerRow(): void {
     const sum = (field: string) => this.tableItems.reduce((acc, item) =>
       acc + (parseFloat(item[field]) || 0), 0);
-
-    this.tableItems = this.tableItems.filter(i => i.C6_ITEM !== 'TOTALIZADOR');
-    this.tableItems.push({
-      C6_ITEM: 'TOTALIZADOR',
-      B1_DESC: 'TOTALIZADOR',
+  
+    this.salesRequestItemsSum = {
       C6_QTDVEN: sum('C6_QTDVEN'),
       IT_PRCUNI: sum('IT_PRCUNI'),
       IT_VALMERC: sum('IT_VALMERC'),
@@ -273,8 +274,9 @@ export class SalesRequestHeaderModalComponent {
       IT_VALSOL: sum('IT_VALSOL'),
       IT_VALIPI: sum('IT_VALIPI'),
       IT_DIFAL: sum('IT_DIFAL')
-    });
+    };
   }
+  
 
   private getNextItemNumber(): string {
     const max = Math.max(

@@ -1,13 +1,9 @@
-<!-- Modal De Inclusão de cabeçalho -->
-<app-add-sales-budget-header-modal
-    #addSalesBudgetHeaderModal
-    (onAdd)="loadSalesBudgets()">
-</app-add-sales-budget-header-modal>
-<!-- Modal De Alteração Do Cabeçalho-->
-<app-edit-sales-budget-header-modal
-    #editSalesBudgetHeaderModal
-    (onEdit)="loadSalesBudgets()">
-</app-edit-sales-budget-header-modal>
+<!-- Modal Unificado de Cabeçalho -->
+<app-sales-budget-header-modal
+    #salesBudgetHeaderModal
+    (onSave)="loadSalesBudgets()">
+</app-sales-budget-header-modal>
+
 <!-- Modal de confirmação de exclusão -->
 <app-delete-confirmation-modal
     #deleteConfirmationModal

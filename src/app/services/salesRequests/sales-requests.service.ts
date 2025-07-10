@@ -454,5 +454,35 @@ export class SalesRequestsService {
       }
     ];
   }
+
+  public GetSalesRequestsItemsDynamicViewFields(): PoDynamicViewField[]{
+    return [
+      {
+        property: 'IT_VALMERC',
+        label: 'Valor Da Mercadoria',
+        gridColumns: 4
+      },
+      {
+        property: 'IT_VALICM',
+        label: 'Valor ICM',
+        gridColumns: 4
+      },
+      {
+        property: 'IT_VALSOL',
+        label: 'ICMS ST',
+        gridColumns: 4
+      },
+      {
+        property: 'IT_VALIPI',
+        label: 'Valor IPI',
+        gridColumns: 4
+      },
+      {
+        property: 'IT_DIFAL',
+        label: 'DIFAL',
+        gridColumns: 4
+      },
+    ];
+  }
   
 }

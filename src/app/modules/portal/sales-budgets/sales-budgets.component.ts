@@ -1,11 +1,10 @@
 import { Component, ViewChild } from '@angular/core';
 import { PoTableAction, PoTableColumn, PoDynamicViewField, PoNotificationService, PoModalComponent } from '@po-ui/ng-components';
 import { DeleteConfirmationModalComponent } from 'src/app/genericComponents/delete-confirmation-modal/delete-confirmation-modal.component';
-import { AddSalesBudgetHeaderModalComponent } from './modals/add-sales-budget-header-modal/add-sales-budget-header-modal.component';
-import { EditSalesBudgetHeaderModalComponent } from './modals/edit-sales-budget-header-modal/edit-sales-budget-header-modal.component';
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { CookieService } from 'ngx-cookie-service';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { SalesBudgetHeaderModalComponent } from './modals/sales-budget-header-modal/sales-budget-header-modal.component';
 
 @Component({
   selector: 'app-sales-budgets',
@@ -14,8 +13,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 })
 export class SalesBudgetsComponent {
   // ViewChilds
-  @ViewChild('addSalesBudgetHeaderModal', { static: true }) addSalesBudgetHeaderModal!: AddSalesBudgetHeaderModalComponent;
-  @ViewChild('editSalesBudgetHeaderModal', { static: true }) editSalesBudgetHeaderModal!: EditSalesBudgetHeaderModalComponent;
+  @ViewChild('salesBudgetHeaderModal', { static: true }) salesBudgetHeaderModal!: SalesBudgetHeaderModalComponent;
   @ViewChild('deleteConfirmationModal', { static: true }) deleteConfirmationModal!: DeleteConfirmationModalComponent;
   @ViewChild('salesBudgetAprovalModal', { static: true }) salesBudgetAprovalModal!: PoModalComponent;
 
@@ -23,7 +21,7 @@ export class SalesBudgetsComponent {
   protected pageActions: PoTableAction[] = [
     {
       label: 'Adicionar',
-      action: () => this.addSalesBudgetHeaderModal.open()
+      action: () => this.salesBudgetHeaderModal.open()
     },
   ];
 
@@ -85,7 +83,7 @@ export class SalesBudgetsComponent {
   }
 
   protected openSalesBudgetEditModal(selectedItem: any): void {
-    this.editSalesBudgetHeaderModal.open(selectedItem);
+    this.salesBudgetHeaderModal.open(selectedItem);
   }
 
   protected openDeleteConfirmationModal(selectedItem: any): void {
