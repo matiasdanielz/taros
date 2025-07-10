@@ -1,0 +1,85 @@
+<!-- sales-request-header-modal.component.html -->
+<po-modal
+  #salesRequestHeaderModal
+  [p-title]="isEditMode ? 'Editar Pedido de Venda' : 'Criar Pedido De Venda'"
+  p-size="xl"
+  class="salesRequestModal">
+
+  <po-stepper
+    #salesRequestStepper
+    (p-change-step)="onChangeStep($event)">
+
+    <po-step
+      p-label="Cabeçalho"
+      [p-can-active-next-step]="canActiveNextStep.bind(this)">
+      <po-dynamic-form
+        #salesRequestHeaderForm
+        [p-fields]="salesRequestFields"
+        [p-value]="salesRequestValue"
+        [p-validate]="onChangeFields.bind(this)">
+      </po-dynamic-form>
+    </po-step>
+
+    <po-step
+      p-label="Itens"
+      [p-can-active-next-step]="canActiveNextStep.bind(this)">
+
+      <po-divider class="po-md-12" p-label="Itens"></po-divider>
+
+      <po-button
+        class="po-md-4 po-mb-3"
+        p-label="Adicionar"
+        p-kind="primary"
+        (p-click)="openItemModal()">
+      </po-button>
+
+      <po-table
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions"
+        [p-columns]="tableColumns"
+        [p-items]="tableItems">
+      </po-table>
+    </po-step>
+
+    <po-step p-label="Resumo">
+      <po-dynamic-view
+        [p-fields]="salesRequestFields"
+        [p-value]="salesRequestValue">
+      </po-dynamic-view>
+
+      <po-divider p-label="Itens"></po-divider>
+
+      <po-table
+        class="po-md-12"
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-hide-text-overflow]="true"
+        [p-columns]="tableColumns"
+        [p-items]="tableItems">
+      </po-table>
+    </po-step>
+  </po-stepper>
+
+  <po-modal-footer [p-disabled-align]="false">
+    <po-button
+      *ngIf="currentStep === 2"
+      p-label="Salvar"
+      p-kind="primary"
+      (p-click)="onSubmit()"
+      [p-disabled]="isSubmitButtonDisabled()">
+    </po-button>
+  </po-modal-footer>
+</po-modal>
+
+<!-- Modal de Itens unificado -->
+<app-sales-request-item-modal
+  #salesRequestItemModal
+  (itemCreated)="onSalesRequestItemCreated($event)"
+  (itemEdited)="onSalesRequestItemEdited($event)">
+</app-sales-request-item-modal>

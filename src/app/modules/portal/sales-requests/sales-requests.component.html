@@ -1,36 +1,32 @@
-<!-- Modal De Inclusão de cabeçalho -->
-<app-add-sales-request-header-modal
-    #addSalesRequestHeaderModal
-    (onAdd)="LoadSalesRequests()">
-</app-add-sales-request-header-modal>
-<!-- Modal De Alteração Do Cabeçalho-->
-<app-edit-sales-request-header-modal
-    #editSalesRequestHeaderModal
-    (onEdit)="LoadSalesRequests()">
-</app-edit-sales-request-header-modal>
+<!-- Modal Unificado de Criar/Editar Pedido -->
+<app-sales-request-header-modal
+  #salesRequestHeaderModal
+  (onSave)="loadSalesRequests()">
+</app-sales-request-header-modal>
+
 <!-- Modal de confirmação de exclusão -->
 <app-delete-confirmation-modal
-    #deleteConfirmationModal
-    (onDelete)="DeleteItem()">
+  #deleteConfirmationModal
+  (onDelete)="deleteItem()">
 </app-delete-confirmation-modal>
-<!-- Pagina Principal -->
+
+<!-- Página principal -->
 <po-page-dynamic-search
-    p-title="Pedidos De Venda"
-    [p-actions]="pageActions"
-    (p-change-disclaimers)="onResetSearch()"
-    (p-quick-search)="onSearch($event)">
-    <po-table
-        p-container="true"
-        [p-hide-columns-manager]="true"
-        [p-sort]="true"
-        [p-striped]="true"
-        [p-columns]="salesRequestsColumns"
-        [p-items]="salesRequestsItems"
-        [p-height]="tableHeight"
-        [p-hide-text-overflow]="true"
-        [p-actions]="tableActions">
-        <ng-template p-table-column-template p-property="branch" let-value>
-            <div>teste</div>
-        </ng-template>
-    </po-table>
+  p-title="Pedidos De Venda"
+  [p-actions]="pageActions"
+  (p-change-disclaimers)="onResetSearch()"
+  (p-quick-search)="onSearch($event)">
+
+  <po-table
+    p-container="true"
+    [p-hide-columns-manager]="true"
+    [p-sort]="true"
+    [p-striped]="true"
+    [p-columns]="salesRequestsColumns"
+    [p-items]="salesRequestsItems"
+    [p-height]="tableHeight"
+    [p-hide-text-overflow]="true"
+    [p-actions]="tableActions">
+  </po-table>
+
 </po-page-dynamic-search>

@@ -1,0 +1,27 @@
+<po-modal
+  #salesRequestItemModal
+  [p-title]="isEditMode ? 'Editar Item Do Pedido De Venda' : 'Criar Item Do Pedido De Venda'"
+  p-size="xl"
+  class="salesRequestItemModal">
+  
+  <po-dynamic-form
+    #salesRequestItemForm
+    [p-fields]="salesRequestsFields"
+    [p-value]="salesRequestValue"
+    [p-validate]="onChangeFields.bind(this)">
+  </po-dynamic-form>
+  
+  <po-modal-footer [p-disabled-align]="false">
+    <po-button
+      [p-danger]="true"
+      p-label="Cancelar"
+      (p-click)="close()">
+    </po-button>
+    <po-button
+      p-kind="primary"
+      p-label="Confirmar"
+      (p-click)="onConfirm()"
+      [p-disabled]="salesRequestItemForm.form.invalid!">
+    </po-button>
+  </po-modal-footer>
+</po-modal>

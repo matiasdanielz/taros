@@ -20,7 +20,7 @@ export class CustomersService {
 
   public getFilteredItems(filteredParams: PoLookupFilteredItemsParams): Observable<any> {
     const session = this.authService.getSession();
-    const salesmanId = session?.sessionInfo?.userId;
+    let salesmanId = session?.sessionInfo?.userId;
   
     if (!salesmanId) {
       throw new Error('Sessão expirada ou inválida. Não é possível buscar clientes.');
@@ -28,6 +28,8 @@ export class CustomersService {
   
     const url: string = `${environment.apiDomain}/customers`;
   
+    salesmanId = '000022';
+
     const { filterParams = {}, advancedFilters = {}, ...restFilteredItemsParams } = filteredParams;
     const params = {
       salesmanId,
@@ -42,10 +44,13 @@ export class CustomersService {
 
   getObjectByValue(value: string, filterParams: any) {
     const session = this.authService.getSession();
-    const salesmanId = session?.sessionInfo?.userId;    const url: string = `${environment.apiDomain}/customers`;
+    let salesmanId = session?.sessionInfo?.userId;    const url: string = `${environment.apiDomain}/customers`;
     const filters = {
       "value": value
     }
+
+    salesmanId = '000022';
+
 
     return this.http
       .get(`${url}?filter=${value}&salesmanId=${salesmanId}`)

@@ -23,6 +23,8 @@ import { AddSalesBudgetItemModalComponent } from './sales-budgets/modals/add-sal
 import { EditSalesBudgetItemModalComponent } from './sales-budgets/modals/edit-sales-budget-item-modal/edit-sales-budget-item-modal.component';
 import { HomeComponent } from './home/home.component';
 import { FormsModule } from '@angular/forms';
+import { SalesRequestHeaderModalComponent } from './sales-requests/modals/sales-request-header-modal/sales-request-header-modal.component';
+import { SalesRequestItemModalComponent } from './sales-requests/modals/sales-request-item-modal/sales-request-item-modal.component';
 
 @NgModule({
   declarations: [
@@ -44,6 +46,8 @@ import { FormsModule } from '@angular/forms';
     AddSalesBudgetItemModalComponent,
     EditSalesBudgetItemModalComponent,
     HomeComponent,
+    SalesRequestHeaderModalComponent,
+    SalesRequestItemModalComponent,
   ],
   imports: [
     CommonModule,
