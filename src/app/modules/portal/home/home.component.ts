@@ -45,7 +45,8 @@ export class HomeComponent implements OnInit {
     const todayFormatted = `${year}${month}${day}`;
     const firstDayOfCurrentMonth = `${year}${month}01`;
 
-    this.customersItems = await this.customersService.GetCustomersItems(this.filter, firstDayOfCurrentMonth, todayFormatted);
+    const response: any = await this.customersService.GetCustomersItems(this.filter, firstDayOfCurrentMonth, todayFormatted);
+    this.customersItems = response['items'];
     this.salesRequestsItems = await this.salesRequestsService.GetSalesRequestsItems(this.filter, firstDayOfCurrentMonth, todayFormatted);
   }
 }

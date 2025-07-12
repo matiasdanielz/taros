@@ -38,7 +38,7 @@ export class HomeService {
           {
             value: 'emAberto',
             label: 'Em Aberto',
-            color: 'color-10'
+            color: 'color-01'
           },
           {
             value: 'encerrado',

@@ -103,6 +103,11 @@ export class ImportsService {
         width: '150px'
       },
       {
+        property: 'fileName',
+        label: 'Arquivo',
+        width: '200px'
+      },
+      {
         property: 'status',
         label: 'Status',
         type: 'label',
@@ -151,11 +156,6 @@ export class ImportsService {
         type: 'date',
         width: '130px'
       },
-      {
-        property: 'fileName',
-        label: 'Arquivo',
-        width: '200px'
-      },      
     ];
   }
 

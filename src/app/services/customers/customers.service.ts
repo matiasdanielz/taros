@@ -28,8 +28,6 @@ export class CustomersService {
   
     const url: string = `${environment.apiDomain}/customers`;
   
-    salesmanId = '000022';
-
     const { filterParams = {}, advancedFilters = {}, ...restFilteredItemsParams } = filteredParams;
     const params = {
       salesmanId,
@@ -49,9 +47,6 @@ export class CustomersService {
       "value": value
     }
 
-    salesmanId = '000022';
-
-
     return this.http
       .get(`${url}?filter=${value}&salesmanId=${salesmanId}`)
       .pipe(map((response: any) => response['items'][0]));
@@ -59,6 +54,11 @@ export class CustomersService {
 
   public GetCustomerColumns(): PoTableColumn[] {
     return [
+      {
+        property: 'branch',
+        label: 'Filial',
+        width: '100px'
+      },
       {
         property: 'id',
         label: 'Código',
@@ -330,25 +330,24 @@ export class CustomersService {
     endDate?: string
   ): Promise<Customer[]> {
     const session = this.authService.getSession();
-    const salesmanId = session?.sessionInfo?.userId;
+    let salesmanId = session?.sessionInfo?.userId;
   
     if (!salesmanId) {
       console.warn('Usuário não está logado ou sessão inválida.');
       return [];
     }
-  
     // Montagem segura da URL com parâmetros
     const params = new URLSearchParams();
     params.set('salesmanId', salesmanId);
     if (initialDate) params.set('initialDate', initialDate);
     if (endDate) params.set('endDate', endDate);
     if (filter) params.set('filter', filter);
-  
+
     const url = `${environment.apiDomain}/customers?${params.toString()}`;
   
     const response: any = await this.http.get(url, environment.header).toPromise();
   
-    return response?.items ?? [];
+    return response;
   }
   
 }

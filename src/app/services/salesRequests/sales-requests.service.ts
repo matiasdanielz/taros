@@ -177,7 +177,7 @@ export class SalesRequestsService {
       },
       {
         divider: 'Outros',
-        property: 'shopOrderId',
+        property: 'C5_PEDECOM',
         label: 'Codigo Do Pedido em Ecommerce',
         gridColumns: 12
       },
@@ -460,6 +460,7 @@ export class SalesRequestsService {
       {
         property: 'IT_VALMERC',
         label: 'Valor Da Mercadoria',
+        divider: 'Somatorio',
         gridColumns: 4
       },
       {

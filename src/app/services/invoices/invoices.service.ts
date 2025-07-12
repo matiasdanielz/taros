@@ -18,6 +18,11 @@ export class InvoicesService {
   public GetInvoicesColumns(): PoTableColumn[]{
       return [
         {
+          property: 'branch',
+          label: 'Filial',
+          width: "125px"
+        },
+        {
           property: "id",
           label: "Nota",
           width: "125px"

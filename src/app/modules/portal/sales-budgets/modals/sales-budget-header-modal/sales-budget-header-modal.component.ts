@@ -4,8 +4,10 @@ import {
 import {
   PoModalComponent, PoDynamicFormComponent, PoStepperComponent,
   PoTableColumn, PoTableAction, PoNotificationService,
-  PoDynamicFormFieldChanged, PoDynamicFormValidation
+  PoDynamicFormFieldChanged, PoDynamicFormValidation,
+  PoDynamicViewField
 } from '@po-ui/ng-components';
+
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { CustomersService } from 'src/app/services/customers/customers.service';
 import { SalesBudgetItemModalComponent } from '../sales-budget-item-modal/sales-budget-item-modal.component';
@@ -22,10 +24,10 @@ enum Step {
   styleUrls: ['./sales-budget-header-modal.component.css']
 })
 export class SalesBudgetHeaderModalComponent implements OnInit {
-  @ViewChild('salesBudgetHeaderModal') private modal!: PoModalComponent;
-  @ViewChild('salesBudgetItemModal') private salesBudgetItemModal!: SalesBudgetItemModalComponent;
-  @ViewChild('salesBudgetHeaderForm') private headerForm!: PoDynamicFormComponent;
-  @ViewChild('salesBudgetStepper') private stepper!: PoStepperComponent;
+  @ViewChild('salesBudgetHeaderModal', { static: true }) private modal!: PoModalComponent;
+  @ViewChild('salesBudgetItemModal', { static: true }) private salesBudgetItemModal!: SalesBudgetItemModalComponent;
+  @ViewChild('salesBudgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
+  @ViewChild('salesBudgetStepper', { static: true }) private stepper!: PoStepperComponent;
 
   @Output() onSave = new EventEmitter<void>();
 
@@ -37,6 +39,10 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   protected removedItems: any[] = [];
 
   protected currentStep: Step = Step.Header;
+
+  // Para o totalizador com po-dynamic-view
+  protected salesBudgetItemFields: PoDynamicViewField[] = [];
+  protected salesBudgetItemsSum: any = {};
 
   readonly tableActions: PoTableAction[] = [
     { label: 'Editar', icon: 'po-icon-edit', action: this.editItem.bind(this) },
@@ -52,12 +58,16 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   ngOnInit(): void {
     this.tableColumns = this.service.GetSalesBudgetsItemsColumns();
     this.salesBudgetFields = this.service.GetSalesBudgetsHeaderFields();
+
+    // Aqui pega os campos para o po-dynamic-view de itens (totalizador)
+    this.salesBudgetItemFields = this.service.GetSalesBudgetsItemsDynamicViewFields();
   }
 
   open(item?: any): void {
     this.isEditMode = !!item;
     this.currentStep = Step.Header;
     this.stepper.active(0);
+    this.removedItems = [];
 
     if (this.isEditMode) {
       this.salesBudgetValue = {
@@ -74,7 +84,7 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
       this.tableItems = [];
     }
 
-    this.updateTotalsRow();
+    this.updateTotals();
     this.modal.open();
   }
 
@@ -118,14 +128,14 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
     item.__isNew = true;
     this.tableItems.push(item);
     await this.calculateTaxes();
-    this.updateTotalsRow();
+    this.updateTotals();
   }
 
   async onSalesBudgetItemEdited(item: any): Promise<void> {
     const index = this.tableItems.findIndex(i => i.CK_ITEM === item.CK_ITEM);
     if (index > -1) this.tableItems[index] = item;
     await this.calculateTaxes();
-    this.updateTotalsRow();
+    this.updateTotals();
   }
 
   removeItem(item: any): void {
@@ -135,7 +145,7 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
       this.removedItems.push(item);
     }
     this.tableItems = this.tableItems.filter(i => i !== item);
-    this.updateTotalsRow();
+    this.updateTotals();
   }
 
   private getNextItemNumber(): string {
@@ -175,6 +185,8 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   async onSubmit(): Promise<void> {
     const payload = this.buildPayload();
 
+    console.log(payload);
+
     const response = this.isEditMode
       ? await this.service.PutSalesBudget(payload)
       : await this.service.PostSalesBudget(payload);
@@ -190,7 +202,14 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   }
 
   buildPayload(): any {
-    const payload = { ...this.salesBudgetValue, CJ_LOJACLI: '01' };
+    const payload = { 
+      ...this.salesBudgetValue, 
+      CJ_LOJACLI: '01',
+      CJ_CONDPAG: "002",
+      CJ_TIPO: "N",
+      CJ_TABELA: "999",
+      CJ_LOJA: "01"
+    };
 
     const items = this.tableItems
       .filter(i => i.CK_ITEM !== 'TOTALIZADOR')
@@ -210,33 +229,51 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
 
   async onChangeFields(changed: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
     if (changed.property === 'CJ_CLIENTE') {
-      const id = changed.value?.id;
-      const [customer]: any = await this.customersService.GetCustomersItems(id);
-      if (customer) {
+
+      const customerId = changed.value?.CJ_CLIENTE;
+      const data = await this.getCustomerData(customerId);
+  
+      Object.assign(this.salesBudgetValue, data);
+  
+      console.log(data);
+
+      if (data) {
         this.salesBudgetValue = {
           ...this.salesBudgetValue,
-          customerAdress: customer.adress,
-          paymentCondition: customer.paymentCondition,
-          priceTable: customer.priceTable,
-          carrier: customer.carrier,
-          CJ_TPFRETE: customer.shippingMethod
+          ...data
         };
       }
     }
-
+  
     return {};
   }
+  
+  private async getCustomerData(customerId: string): Promise<any> {
+    const response: any = await this.customersService.GetCustomersItems(customerId);
+    const customers = response?.items ?? [];
+  
+    if (customers.length !== 1) {
+      return ''; // ou return {}; se quiser sempre um objeto
+    }
+  
+    const customer = customers[0];
+  
+    return {
+      customerAdress: customer['adress'],
+      paymentCondition: customer['paymentCondition'],
+      priceTable: customer['priceTable'],
+      carrier: customer['carrier'],
+      CJ_TPFRETE: customer['C5_TPFRETE']
+    };
+  }
+  
 
-  private updateTotalsRow(): void {
-    this.tableItems = this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR');
-
+  private updateTotals(): void {
+    // soma os campos numéricos para exibir no po-dynamic-view
     const sum = (key: string) =>
-      this.tableItems.reduce((total, item) => total + (parseFloat(item[key]) || 0), 0).toFixed(2);
+      this.tableItems.reduce((total, item) => total + (parseFloat(item[key]) || 0), 0);
 
-    const total = {
-      CK_ITEM: 'TOTALIZADOR',
-      CK_PRODUTO: '',
-      B1_DESC: '',
+    this.salesBudgetItemsSum = {
       CK_QTDVEN: sum('CK_QTDVEN'),
       IT_PRCUNI: sum('IT_PRCUNI'),
       IT_VALMERC: sum('IT_VALMERC'),
@@ -244,9 +281,7 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
       IT_VALSOL: sum('IT_VALSOL'),
       IT_VALIPI: sum('IT_VALIPI'),
       IT_DIFAL: sum('IT_DIFAL'),
-      IT_SLDPROD: sum('IT_SLDPROD')
+      IT_SLDPROD: sum('IT_SLDPROD'),
     };
-
-    this.tableItems = [...this.tableItems, total];
   }
 }

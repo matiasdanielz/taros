@@ -59,8 +59,8 @@ export class SalesRequestsComponent {
     this.salesRequestsItems = await this.salesRequestsService.GetSalesRequestsItems(this.filter, '', '');
   }
 
-  protected openEditModal(selectedItem: any) {
-    this.salesRequestHeaderModal.open(selectedItem);
+  protected async openEditModal(selectedItem: any) {
+    await this.salesRequestHeaderModal.open(selectedItem);
   }
 
   protected openDeleteConfirmationModal(selectedItem: any) {

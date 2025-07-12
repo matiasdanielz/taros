@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PoTableColumn, PoDynamicFormField } from '@po-ui/ng-components';
+import { PoTableColumn, PoDynamicFormField, PoDynamicViewField } from '@po-ui/ng-components';
 import { environment } from 'src/environments/environment';
 import { CustomersService } from '../customers/customers.service';
 import { ProductsService } from '../products/products.service';
@@ -448,4 +448,36 @@ constructor(
       }
     ];    
   }
+
+    public GetSalesBudgetsItemsDynamicViewFields(): PoDynamicViewField[]{
+      return [
+        {
+          property: 'IT_VALMERC',
+          label: 'Valor Da Mercadoria',
+        divider: 'Somatorio',
+
+          gridColumns: 4
+        },
+        {
+          property: 'IT_VALICM',
+          label: 'Valor ICM',
+          gridColumns: 4
+        },
+        {
+          property: 'IT_VALSOL',
+          label: 'ICMS ST',
+          gridColumns: 4
+        },
+        {
+          property: 'IT_VALIPI',
+          label: 'Valor IPI',
+          gridColumns: 4
+        },
+        {
+          property: 'IT_DIFAL',
+          label: 'DIFAL',
+          gridColumns: 4
+        },
+      ];
+    }
 }

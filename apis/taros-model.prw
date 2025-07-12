@@ -27,7 +27,7 @@ endclass
 method New() class TarosModel
     return self
 
-method Login(cUserName, cPassword) class TarosModel
+method Login(cUserId, cPassword) class TarosModel
     local oResponse    := JsonObject():New()
     local oSessionInfo := JsonObject():New()
     local bIsLogged    := .f.
@@ -39,14 +39,14 @@ method Login(cUserName, cPassword) class TarosModel
         FROM
             %Table:SA3% SA3
         WHERE
-            SA3.A3_LOGIN = %Exp:cUserName%
+            SA3.A3_LOGIN = %Exp:cUserId%
         AND
             SA3.A3_PWSAPI = %Exp:cPassword%
     EndSql
 
     If !SQL_LOGIN->(EoF())
-        oSessionInfo['userId'] := SA3->A3_COD
-        oSessionInfo['name'] := Alltrim(SA3->A3_NREDUZ)
+        oSessionInfo['userId'] := SQL_LOGIN->A3_COD
+        oSessionInfo['name'] := Alltrim(SQL_LOGIN->A3_NREDUZ)
 
         bIsLogged := .T.
     EndIf
@@ -68,6 +68,7 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
 
     BeginSql Alias "SQL_CUSTOMERS"
         SELECT
+            A1_FILIAL AS FILIAL,
             A1_COD AS CODIGO,
             A1_LOJA AS LOJA,
             A1_NOME AS NOME,
@@ -132,6 +133,7 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
     oResponse['total'] := SQL_CUSTOMERS->TOTAL
 
     While !SQL_CUSTOMERS->(EoF())
+        oCustomer[ 'branch' ]           := ALLTRIM(SQL_CUSTOMERS->FILIAL)
         oCustomer[ 'id' ]               := ALLTRIM(SQL_CUSTOMERS->CODIGO)
         oCustomer[ 'store' ]            := ALLTRIM(SQL_CUSTOMERS->LOJA)
         oCustomer[ 'name' ]             := ALLTRIM(SQL_CUSTOMERS->NOME)
@@ -174,6 +176,7 @@ method GetHInvc(cSalesmanId, cFilter) class TarosModel
 
     BeginSql Alias "SQL_INVOICES"
         SELECT
+            F2_FILIAL AS FILIAL,
             F2_DOC AS CODIGO,
             F2_SERIE SERIE,
             A1_LOJA AS LOJA_CLIENTE,
@@ -215,6 +218,7 @@ method GetHInvc(cSalesmanId, cFilter) class TarosModel
     oResponse['total'] := SQL_INVOICES->TOTAL
 
     While !SQL_INVOICES->(EoF())
+        oInvoice[ 'branch' ]             := ALLTRIM(SQL_INVOICES->FILIAL)
         oInvoice[ 'id' ]             := ALLTRIM(SQL_INVOICES->CODIGO)
         oInvoice[ 'serial' ]         := ALLTRIM(SQL_INVOICES->SERIE)
         oInvoice[ 'customerStore' ]  := ALLTRIM(SQL_INVOICES->LOJA_CLIENTE)
@@ -311,6 +315,7 @@ method GetSReqs(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
             E4_DESCRI       AS CONDICAO_PAGAMENTO,
             A4_NOME         AS TRANSPORTADORA,
             C5_DESCONT      AS DESCONTO,
+            C5_PEDECOM      AS C5_PEDECOM,
             CASE
                 WHEN (
                     C5_LIBEROK = ''
@@ -411,7 +416,8 @@ method GetSReqs(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
         oSalesRequest[ 'discount' ]         := SQL_SALES_REQUESTS->DESCONTO
         oSalesRequest[ 'priceTable' ]       := SQL_SALES_REQUESTS->TABELA_PRECO
         oSalesRequest[ 'status' ]           := Alltrim(SQL_SALES_REQUESTS->STATUS)
-        oSalesRequest[ 'message' ]          := Alltrim(SQL_SALES_REQUESTS->MSG_NOTA)
+        oSalesRequest[ 'C5_MENNOTA' ]       := Alltrim(SQL_SALES_REQUESTS->MSG_NOTA)
+        oSalesRequest[ 'C5_PEDECOM' ]       := Alltrim(SQL_SALES_REQUESTS->C5_PEDECOM)
         oSalesRequest[ 'items' ]            := ::GetISRqs(SQL_SALES_REQUESTS->CODIGO)['items']
 
         aadd(aSalesRequests, oSalesRequest)

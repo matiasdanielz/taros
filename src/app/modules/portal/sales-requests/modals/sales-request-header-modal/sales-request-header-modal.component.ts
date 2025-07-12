@@ -16,6 +16,7 @@ import {
 import { SalesRequestsService } from 'src/app/services/salesRequests/sales-requests.service';
 import { CustomersService } from 'src/app/services/customers/customers.service';
 import { SalesRequestItemModalComponent } from '../sales-request-item-modal/sales-request-item-modal.component';
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 enum Step {
   Header = 0,
@@ -65,7 +66,8 @@ export class SalesRequestHeaderModalComponent {
   constructor(
     private salesRequestsService: SalesRequestsService,
     private poNotification: PoNotificationService,
-    private customersService: CustomersService
+    private customersService: CustomersService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -74,7 +76,7 @@ export class SalesRequestHeaderModalComponent {
     this.salesRequestFields = this.salesRequestsService.GetSalesRequestsHeaderFields();
   }
 
-  public open(itemToEdit?: any): void {
+  public async open(itemToEdit?: any): Promise<void> {
     this.isEditMode = !!itemToEdit;
     this.currentStep = Step.Header;
     this.stepperComponent.active(0);
@@ -83,8 +85,15 @@ export class SalesRequestHeaderModalComponent {
     if (this.isEditMode) {
       this.salesRequestValue = {
         C5_NUM: itemToEdit['orderNumber'],
-        C5_CLIENTE: itemToEdit['customerCode']
+        C5_CLIENTE: itemToEdit['customerCode'],
+        C5_PEDECOM: itemToEdit['C5_PEDECOM'],
+        C5_MENNOTA: itemToEdit['C5_MENNOTA'],
       };
+
+      const data = await this.getCustomerData(itemToEdit['customerCode']);
+  
+      Object.assign(this.salesRequestValue, data);
+
       this.tableItems = itemToEdit['items'];
       this.calculateTaxesForItems().then(() => {
         this.addTotalizerRow();
@@ -112,20 +121,40 @@ export class SalesRequestHeaderModalComponent {
 
   public async onChangeFields(changed: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
     if (changed.property === 'C5_CLIENTE') {
-      const id = changed.value?.id;
-      const response: any = await this.customersService.GetCustomersItems(id);
-      const customer = response[0];
-      if (!customer) return {};
-
-      this.salesRequestValue['customerAdress'] = customer['adress'];
-      this.salesRequestValue['paymentCondition'] = customer['paymentCondition'];
-      this.salesRequestValue['priceTable'] = customer['priceTable'];
-      this.salesRequestValue['shippingMethod'] = customer['shippingMethod'];
-      this.salesRequestValue['C5_TPFRETE'] = customer['shippingMethod'];
+      const customerId = changed.value?.C5_CLIENTE;
+      const data = await this.getCustomerData(customerId);
+  
+      Object.assign(this.salesRequestValue, data);
+  
+      return {
+        value: data // ← isso comunica ao PoDynamicForm os campos modificados
+      };
     }
-
+  
     return {};
   }
+  
+  private async getCustomerData(customerId: string): Promise<any> {
+    const response: any = await this.customersService.GetCustomersItems(customerId);
+    const customers = response?.items ?? [];
+  
+    if (customers.length !== 1) {
+      // Retorna objeto vazio caso não haja exatamente um resultado
+      return '';
+    }
+  
+    const customer = customers[0];
+  
+    return {
+      ...this.salesRequestValue,
+      customerAdress: customer['adress'],
+      paymentCondition: customer['paymentCondition'],
+      priceTable: customer['priceTable'],
+      carrier: customer['carrier'],
+      C5_TPFRETE: customer['C5_TPFRETE']
+    };
+  }
+  
 
   public onChangeStep(event: any): void {
     const labelMap: Record<string, Step> = {
@@ -210,6 +239,10 @@ export class SalesRequestHeaderModalComponent {
   }
 
   private buildPayload(isEdit: boolean = false): any {
+    const session = this.authService.getSession();
+    const salesmanId = session?.sessionInfo?.userId;
+    this.salesRequestValue['C5_VEND1'] = salesmanId;
+
     const payload = { ...this.salesRequestValue };
     if (payload['C5_EMISSAO']) payload['C5_EMISSAO'] = this.formatDate(payload['C5_EMISSAO']);
     payload['C5_LOJACLI'] = '01';
