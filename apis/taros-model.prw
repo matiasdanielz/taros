@@ -84,8 +84,10 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
             A1_CEP AS CEP,
             A1_TEL AS TELEFONE,
             A1_EMAIL AS EMAIL,
-            E4_DESCRI AS CONDPAG,
-            DA0_DESCRI AS TABELA,
+            A1_COND AS CONDPAG,
+            E4_DESCRI AS NOME_CONDPAG,
+            DA0_DESCRI AS NOME_TABELA,
+            A1_TABELA AS TABELA,
             A1_MSBLQL AS STATUS,
             A1_TPFRET AS TIPO_FRETE,
             A4_NOME AS TRANSPORTADORA,
@@ -133,27 +135,29 @@ method GetCusts(cSalesmanId, cFilter, cInitialDate, cEndDate) class TarosModel
     oResponse['total'] := SQL_CUSTOMERS->TOTAL
 
     While !SQL_CUSTOMERS->(EoF())
-        oCustomer[ 'branch' ]           := ALLTRIM(SQL_CUSTOMERS->FILIAL)
-        oCustomer[ 'id' ]               := ALLTRIM(SQL_CUSTOMERS->CODIGO)
-        oCustomer[ 'store' ]            := ALLTRIM(SQL_CUSTOMERS->LOJA)
-        oCustomer[ 'name' ]             := ALLTRIM(SQL_CUSTOMERS->NOME)
-        oCustomer[ 'fantasyName' ]      := ALLTRIM(SQL_CUSTOMERS->NOME_REDUZIDO)
-        oCustomer[ 'type' ]             := ALLTRIM(SQL_CUSTOMERS->TIPO_CLIENTE)
-        oCustomer[ 'person' ]           := ALLTRIM(SQL_CUSTOMERS->PESSOA)
-        oCustomer[ 'brazilianTaxId' ]   := ALLTRIM(SQL_CUSTOMERS->CNPJ_CPF)
-        oCustomer[ 'stateInscription' ] := ALLTRIM(SQL_CUSTOMERS->INSCRICAO_ESTADUAL)
-        oCustomer[ 'adress' ]           := ALLTRIM(SQL_CUSTOMERS->ENDERECO)
-        oCustomer[ 'neighborhood' ]     := ALLTRIM(SQL_CUSTOMERS->BAIRRO)
-        oCustomer[ 'city' ]             := ALLTRIM(SQL_CUSTOMERS->CIDADE)
-        oCustomer[ 'state' ]            := ALLTRIM(SQL_CUSTOMERS->ESTADO)
-        oCustomer[ 'zip' ]              := ALLTRIM(SQL_CUSTOMERS->CEP)
-        oCustomer[ 'phone' ]            := ALLTRIM(SQL_CUSTOMERS->TELEFONE)
-        oCustomer[ 'email' ]            := ALLTRIM(SQL_CUSTOMERS->EMAIL)
-        oCustomer[ 'paymentCondition' ] := ALLTRIM(SQL_CUSTOMERS->CONDPAG)
-        oCustomer[ 'priceTable' ]       := ALLTRIM(SQL_CUSTOMERS->TABELA)
-        oCustomer[ 'status' ]           := ALLTRIM(SQL_CUSTOMERS->STATUS)
-        oCustomer[ 'carrier' ]          := ALLTRIM(SQL_CUSTOMERS->TRANSPORTADORA)
-        oCustomer[ 'C5_TPFRETE' ]       := ALLTRIM(SQL_CUSTOMERS->TIPO_FRETE)
+        oCustomer[ 'branch' ]               := ALLTRIM(SQL_CUSTOMERS->FILIAL)
+        oCustomer[ 'id' ]                   := ALLTRIM(SQL_CUSTOMERS->CODIGO)
+        oCustomer[ 'store' ]                := ALLTRIM(SQL_CUSTOMERS->LOJA)
+        oCustomer[ 'name' ]                 := ALLTRIM(SQL_CUSTOMERS->NOME)
+        oCustomer[ 'fantasyName' ]          := ALLTRIM(SQL_CUSTOMERS->NOME_REDUZIDO)
+        oCustomer[ 'type' ]                 := ALLTRIM(SQL_CUSTOMERS->TIPO_CLIENTE)
+        oCustomer[ 'person' ]               := ALLTRIM(SQL_CUSTOMERS->PESSOA)
+        oCustomer[ 'brazilianTaxId' ]       := ALLTRIM(SQL_CUSTOMERS->CNPJ_CPF)
+        oCustomer[ 'stateInscription' ]     := ALLTRIM(SQL_CUSTOMERS->INSCRICAO_ESTADUAL)
+        oCustomer[ 'adress' ]               := ALLTRIM(SQL_CUSTOMERS->ENDERECO)
+        oCustomer[ 'neighborhood' ]         := ALLTRIM(SQL_CUSTOMERS->BAIRRO)
+        oCustomer[ 'city' ]                 := ALLTRIM(SQL_CUSTOMERS->CIDADE)
+        oCustomer[ 'state' ]                := ALLTRIM(SQL_CUSTOMERS->ESTADO)
+        oCustomer[ 'zip' ]                  := ALLTRIM(SQL_CUSTOMERS->CEP)
+        oCustomer[ 'phone' ]                := ALLTRIM(SQL_CUSTOMERS->TELEFONE)
+        oCustomer[ 'email' ]                := ALLTRIM(SQL_CUSTOMERS->EMAIL)
+        oCustomer[ 'paymentConditionName' ] := ALLTRIM(SQL_CUSTOMERS->NOME_CONDPAG)
+        oCustomer[ 'paymentCondition' ]     := ALLTRIM(SQL_CUSTOMERS->CONDPAG)
+        oCustomer[ 'priceTableName' ]       := ALLTRIM(SQL_CUSTOMERS->NOME_TABELA)
+        oCustomer[ 'priceTable' ]           := ALLTRIM(SQL_CUSTOMERS->TABELA)
+        oCustomer[ 'status' ]               := ALLTRIM(SQL_CUSTOMERS->STATUS)
+        oCustomer[ 'carrier' ]              := ALLTRIM(SQL_CUSTOMERS->TRANSPORTADORA)
+        oCustomer[ 'C5_TPFRETE' ]           := ALLTRIM(SQL_CUSTOMERS->TIPO_FRETE)
 
         aadd(aCustomers, oCustomer)
         oCustomer := JsonObject():New()

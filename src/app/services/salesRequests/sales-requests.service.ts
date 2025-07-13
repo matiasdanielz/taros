@@ -158,13 +158,13 @@ export class SalesRequestsService {
         gridSmColumns: 12
       },
       {
-        property: 'paymentCondition',
+        property: 'paymentConditionName',
         label: 'Condição De Pagamento',
         readonly: true,
         gridColumns: 6
       },
       {
-        property: 'priceTable',
+        property: 'priceTableName',
         label: 'Tabela De Preço',
         readonly: true,
         gridColumns: 6

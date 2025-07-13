@@ -11,6 +11,7 @@ import {
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { CustomersService } from 'src/app/services/customers/customers.service';
 import { SalesBudgetItemModalComponent } from '../sales-budget-item-modal/sales-budget-item-modal.component';
+import { PaymentConditionsService } from 'src/app/services/paymentConditions/payment-conditions.service';
 
 enum Step {
   Header = 0,
@@ -150,7 +151,6 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
 
   private getNextItemNumber(): string {
     const numbers = this.tableItems
-      .filter(i => i.CK_ITEM !== 'TOTALIZADOR')
       .map(i => parseInt(i.CK_ITEM, 10));
     const max = Math.max(0, ...numbers);
     return (max + 1).toString().padStart(2, '0');
@@ -166,7 +166,7 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
       C5_TABELA: this.salesBudgetValue['C5_TABELA'] ?? '999',
       C5_CONDPAG: this.salesBudgetValue['C5_CONDPAG'] ?? '002',
       C5_TIPO: 'N',
-      ITENS: this.tableItems.filter(i => i.CK_ITEM !== 'TOTALIZADOR')
+      ITENS: this.tableItems
     };
 
     const res = await this.service.GetSalesBudgetTaxes(header);
@@ -185,8 +185,6 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   async onSubmit(): Promise<void> {
     const payload = this.buildPayload();
 
-    console.log(payload);
-
     const response = this.isEditMode
       ? await this.service.PutSalesBudget(payload)
       : await this.service.PostSalesBudget(payload);
@@ -204,24 +202,31 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   buildPayload(): any {
     const payload = { 
       ...this.salesBudgetValue, 
-      CJ_LOJACLI: '01',
-      CJ_CONDPAG: "002",
-      CJ_TIPO: "N",
-      CJ_TABELA: "999",
-      CJ_LOJA: "01"
+      CJ_LOJACLI: this.salesBudgetValue['store'],
+      CJ_CONDPAG: this.salesBudgetValue['paymentCondition'],
+      CJ_TIPO: "",
+      CJ_TABELA: this.salesBudgetValue['priceTable'],
+      CJ_LOJA: this.salesBudgetValue['store']
     };
 
     const items = this.tableItems
-      .filter(i => i.CK_ITEM !== 'TOTALIZADOR')
-      .map(i => ({
-        ...i,
-        CK_OPER: '01',
-        CK_PRODUTO: i.IT_PRODUTO?.trim(),
-        CK_QTDVEN: i.IT_QUANT,
-        LINPOS: i.CK_ITEM,
-        AUTDELETA: i.__isNew ? 'N' : (i.AUTDELETA ?? 'N')
-      }));
-
+      .map(i => {
+        const base = {
+          ...i,
+          CK_OPER: '01',
+          CK_PRODUTO: i.IT_PRODUTO?.trim(),
+        };
+      
+        if (!i.__isNew) {
+          return {
+            ...base,
+            LINPOS: i.CK_ITEM,
+          };
+        }
+      
+        return base;
+      });
+      
     payload.ITENS = [...items, ...this.removedItems];
 
     return payload;
@@ -235,14 +240,9 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   
       Object.assign(this.salesBudgetValue, data);
   
-      console.log(data);
-
-      if (data) {
-        this.salesBudgetValue = {
-          ...this.salesBudgetValue,
-          ...data
-        };
-      }
+      return {
+        value: data
+      } 
     }
   
     return {};
@@ -257,12 +257,15 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
     }
   
     const customer = customers[0];
-  
+
     return {
       customerAdress: customer['adress'],
+      paymentConditionName: customer['paymentConditionName'],
       paymentCondition: customer['paymentCondition'],
       priceTable: customer['priceTable'],
+      priceTableName: customer['priceTableName'],
       carrier: customer['carrier'],
+      store: customer['store'],
       CJ_TPFRETE: customer['C5_TPFRETE']
     };
   }

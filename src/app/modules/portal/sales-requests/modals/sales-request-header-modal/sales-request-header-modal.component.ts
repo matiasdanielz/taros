@@ -149,7 +149,9 @@ export class SalesRequestHeaderModalComponent {
       ...this.salesRequestValue,
       customerAdress: customer['adress'],
       paymentCondition: customer['paymentCondition'],
+      paymentConditionName: customer['paymentConditionName'],
       priceTable: customer['priceTable'],
+      priceTableName: customer['priceTableName'],
       carrier: customer['carrier'],
       C5_TPFRETE: customer['C5_TPFRETE']
     };
@@ -192,13 +194,12 @@ export class SalesRequestHeaderModalComponent {
 
   public async onSalesRequestItemCreated(item: any): Promise<void> {
     item.__isNew = true;
-    this.tableItems = [...this.tableItems.filter(i => i.C6_ITEM !== 'TOTALIZADOR'), item];
+    this.tableItems = [...this.tableItems, item];
     await this.calculateTaxesForItems();
   }
 
   public async onSalesRequestItemEdited(item: any): Promise<void> {
     this.tableItems = this.tableItems
-      .filter(i => i.C6_ITEM !== 'TOTALIZADOR')
       .map(existing => existing['C6_ITEM'] === item['C6_ITEM'] ? item : existing);
     await this.calculateTaxesForItems();
   }
@@ -207,7 +208,7 @@ export class SalesRequestHeaderModalComponent {
     item.LINPOS = item['C6_ITEM'];
     item.AUTDELETA = 'S';
     this.removedItemsFromTableItems.push(item);
-    this.tableItems = this.tableItems.filter(i => i !== item && i.C6_ITEM !== 'TOTALIZADOR');
+    this.tableItems = this.tableItems.filter(i => i !== item);
     this.addTotalizerRow();
   }
 
@@ -248,7 +249,6 @@ export class SalesRequestHeaderModalComponent {
     payload['C5_LOJACLI'] = '01';
 
     const items = this.tableItems
-      .filter(i => i.C6_ITEM !== 'TOTALIZADOR')
       .map(item => {
         const newItem = { ...item };
         if (isEdit && !newItem.__isNew) {
@@ -275,7 +275,7 @@ export class SalesRequestHeaderModalComponent {
       C5_TIPO: this.salesRequestValue['C5_TIPO'] ?? 'N',
       C5_TPFRETE: this.salesRequestValue['C5_TPFRETE'] ?? 'C',
       C5_CONDPAG: this.salesRequestValue['C5_CONDPAG'] ?? '002',
-      ITENS: this.tableItems.filter(i => i.C6_ITEM !== 'TOTALIZADOR')
+      ITENS: this.tableItems
     };
 
     if (headerData['C5_EMISSAO']) {
@@ -315,7 +315,6 @@ export class SalesRequestHeaderModalComponent {
     const max = Math.max(
       0,
       ...this.tableItems
-        .filter(i => i.C6_ITEM !== 'TOTALIZADOR')
         .map(i => parseInt(i.C6_ITEM, 10) || 0)
     );
     return (max + 1).toString().padStart(2, '0');
