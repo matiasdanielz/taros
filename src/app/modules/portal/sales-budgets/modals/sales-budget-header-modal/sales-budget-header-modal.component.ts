@@ -2,7 +2,7 @@ import {
   Component, EventEmitter, Output, ViewChild, OnInit
 } from '@angular/core';
 import {
-  PoModalComponent, PoDynamicFormComponent, PoStepperComponent,
+  PoModalComponent, PoDynamicFormComponent,
   PoTableColumn, PoTableAction, PoNotificationService,
   PoDynamicFormFieldChanged, PoDynamicFormValidation,
   PoDynamicViewField
@@ -11,13 +11,6 @@ import {
 import { SalesBudgetsService } from 'src/app/services/salesBudgets/sales-budgets.service';
 import { CustomersService } from 'src/app/services/customers/customers.service';
 import { SalesBudgetItemModalComponent } from '../sales-budget-item-modal/sales-budget-item-modal.component';
-import { PaymentConditionsService } from 'src/app/services/paymentConditions/payment-conditions.service';
-
-enum Step {
-  Header = 0,
-  Items = 1,
-  Summary = 2
-}
 
 @Component({
   selector: 'app-sales-budget-header-modal',
@@ -28,7 +21,6 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   @ViewChild('salesBudgetHeaderModal', { static: true }) private modal!: PoModalComponent;
   @ViewChild('salesBudgetItemModal', { static: true }) private salesBudgetItemModal!: SalesBudgetItemModalComponent;
   @ViewChild('salesBudgetHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
-  @ViewChild('salesBudgetStepper', { static: true }) private stepper!: PoStepperComponent;
 
   @Output() onSave = new EventEmitter<void>();
 
@@ -38,8 +30,6 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   protected tableColumns: PoTableColumn[] = [];
   protected tableItems: any[] = [];
   protected removedItems: any[] = [];
-
-  protected currentStep: Step = Step.Header;
 
   // Para o totalizador com po-dynamic-view
   protected salesBudgetItemFields: PoDynamicViewField[] = [];
@@ -54,7 +44,7 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
     private service: SalesBudgetsService,
     private poNotification: PoNotificationService,
     private customersService: CustomersService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.tableColumns = this.service.GetSalesBudgetsItemsColumns();
@@ -64,22 +54,27 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
     this.salesBudgetItemFields = this.service.GetSalesBudgetsItemsDynamicViewFields();
   }
 
-  open(item?: any): void {
+  async open(item?: any): Promise<void> {
     this.isEditMode = !!item;
-    this.currentStep = Step.Header;
-    this.stepper.active(0);
     this.removedItems = [];
 
     if (this.isEditMode) {
       this.salesBudgetValue = {
         CJ_NUM: item.orderNumber,
         CJ_CLIENTE: item.customerCode,
-        CJ_TPFRETE: item.shippingMethod,
+        CK_TPFRETE: item.shippingMethod,
         CJ_LOJA: item.store
       };
-      this.tableItems = item.items || [];
-      this.onChangeFields({ property: 'CJ_CLIENTE', value: this.salesBudgetValue['CJ_CLIENTE'] });
-      this.calculateTaxes();
+
+      const data = await this.getCustomerData(item['customerCode']);
+  
+      Object.assign(this.salesBudgetValue, data);
+
+      this.tableItems = item.items;
+      this.calculateTaxes().then(() => {
+        this.updateTotals();
+        this.modal.open();
+      });
     } else {
       this.salesBudgetValue = {};
       this.tableItems = [];
@@ -93,30 +88,12 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
     this.modal.close();
   }
 
-  onChangeStep(event: any): void {
-    const map: Record<string, Step> = {
-      'Cabeçalho': Step.Header,
-      'Itens': Step.Items,
-      'Resumo': Step.Summary
-    };
-    this.currentStep = map[event.label] ?? Step.Header;
-  }
-
-  canActiveNextStep(): boolean {
-    if (this.currentStep === Step.Header && this.headerForm?.form?.invalid) {
-      this.poNotification.error('Preencha os campos obrigatórios!');
-      return false;
-    }
-
-    if (this.currentStep === Step.Items && this.tableItems.length === 0) {
-      this.poNotification.error('Adicione ao menos um item!');
-      return false;
-    }
-
-    return true;
-  }
-
   openItemModal(): void {
+    if(this.salesBudgetValue['CJ_CLIENTE'] == undefined || this.salesBudgetValue['CJ_CLIENTE'] == ""){
+      this.poNotification.error("Selecione um Cliente Para Adicionar um item");
+      return;
+    }
+
     const next = this.getNextItemNumber();
     this.salesBudgetItemModal.openAdd(next, this.salesBudgetValue['CJ_CLIENTE']);
   }
@@ -200,11 +177,10 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
   }
 
   buildPayload(): any {
-    const payload = { 
-      ...this.salesBudgetValue, 
+    const payload = {
+      ...this.salesBudgetValue,
       CJ_LOJACLI: this.salesBudgetValue['store'],
       CJ_CONDPAG: this.salesBudgetValue['paymentCondition'],
-      CJ_TIPO: "",
       CJ_TABELA: this.salesBudgetValue['priceTable'],
       CJ_LOJA: this.salesBudgetValue['store']
     };
@@ -216,17 +192,17 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
           CK_OPER: '01',
           CK_PRODUTO: i.IT_PRODUTO?.trim(),
         };
-      
+
         if (!i.__isNew) {
           return {
             ...base,
             LINPOS: i.CK_ITEM,
           };
         }
-      
+
         return base;
       });
-      
+
     payload.ITENS = [...items, ...this.removedItems];
 
     return payload;
@@ -234,30 +210,56 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
 
   async onChangeFields(changed: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
     if (changed.property === 'CJ_CLIENTE') {
-
       const customerId = changed.value?.CJ_CLIENTE;
+  
       const data = await this.getCustomerData(customerId);
-  
       Object.assign(this.salesBudgetValue, data);
-  
-      return {
-        value: data
-      } 
+
+      // Aguarda 1 segundo antes de retornar
+      setTimeout(() => {
+        return {
+          value: data
+        };
+      }, 1000);
     }
   
     return {};
   }
-  
+
+
+
   private async getCustomerData(customerId: string): Promise<any> {
+    if (!customerId) {
+      return {
+        customerAdress: '',
+        paymentConditionName: '',
+        paymentCondition: '',
+        priceTable: '',
+        priceTableName: '',
+        carrier: '',
+        store: '',
+        CJ_TPFRETE: ''
+      };
+    }
+  
     const response: any = await this.customersService.GetCustomersItems(customerId);
     const customers = response?.items ?? [];
   
     if (customers.length !== 1) {
-      return ''; // ou return {}; se quiser sempre um objeto
+      return {
+        customerAdress: '',
+        paymentConditionName: '',
+        paymentCondition: '',
+        priceTable: '',
+        priceTableName: '',
+        carrier: '',
+        store: '',
+        CJ_TPFRETE: ''
+      };
     }
   
     const customer = customers[0];
-
+  
     return {
       customerAdress: customer['adress'],
       paymentConditionName: customer['paymentConditionName'],

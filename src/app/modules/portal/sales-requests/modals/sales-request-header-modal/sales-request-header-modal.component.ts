@@ -4,7 +4,6 @@ import {
 import {
   PoModalComponent,
   PoDynamicFormComponent,
-  PoStepperComponent,
   PoTableColumn,
   PoTableAction,
   PoNotificationService,
@@ -18,12 +17,6 @@ import { CustomersService } from 'src/app/services/customers/customers.service';
 import { SalesRequestItemModalComponent } from '../sales-request-item-modal/sales-request-item-modal.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 
-enum Step {
-  Header = 0,
-  Items = 1,
-  Summary = 2
-}
-
 @Component({
   selector: 'app-sales-request-header-modal',
   templateUrl: './sales-request-header-modal.component.html',
@@ -33,12 +26,10 @@ export class SalesRequestHeaderModalComponent {
   @ViewChild('salesRequestHeaderModal', { static: true }) private modal!: PoModalComponent;
   @ViewChild('salesRequestItemModal', { static: true }) private itemModal!: SalesRequestItemModalComponent;
   @ViewChild('salesRequestHeaderForm', { static: true }) private headerForm!: PoDynamicFormComponent;
-  @ViewChild('salesRequestStepper', { static: true }) private stepperComponent!: PoStepperComponent;
 
   @Output() onSave = new EventEmitter<any>();
 
   protected isEditMode = false;
-  protected currentStep: Step = Step.Header;
   protected selectedEditItem: any = null;
   protected salesRequestItemFields: PoDynamicViewField[] = [];
   protected salesRequestItemsSum: any = {};
@@ -78,8 +69,6 @@ export class SalesRequestHeaderModalComponent {
 
   public async open(itemToEdit?: any): Promise<void> {
     this.isEditMode = !!itemToEdit;
-    this.currentStep = Step.Header;
-    this.stepperComponent.active(0);
     this.removedItemsFromTableItems = [];
 
     if (this.isEditMode) {
@@ -122,31 +111,52 @@ export class SalesRequestHeaderModalComponent {
   public async onChangeFields(changed: PoDynamicFormFieldChanged): Promise<PoDynamicFormValidation> {
     if (changed.property === 'C5_CLIENTE') {
       const customerId = changed.value?.C5_CLIENTE;
-      const data = await this.getCustomerData(customerId);
   
+      const data = await this.getCustomerData(customerId);
       Object.assign(this.salesRequestValue, data);
   
-      return {
-        value: data // ← isso comunica ao PoDynamicForm os campos modificados
-      };
+      setTimeout(() => {
+        return {
+          value: data
+        };
+      }, 1000);
     }
   
     return {};
   }
   
+  
   private async getCustomerData(customerId: string): Promise<any> {
+    if (!customerId) {
+      return {
+        customerAdress: '',
+        paymentCondition: '',
+        paymentConditionName: '',
+        priceTable: '',
+        priceTableName: '',
+        carrier: '',
+        C5_TPFRETE: ''
+      };
+    }
+  
     const response: any = await this.customersService.GetCustomersItems(customerId);
     const customers = response?.items ?? [];
   
     if (customers.length !== 1) {
-      // Retorna objeto vazio caso não haja exatamente um resultado
-      return '';
+      return {
+        customerAdress: '',
+        paymentCondition: '',
+        paymentConditionName: '',
+        priceTable: '',
+        priceTableName: '',
+        carrier: '',
+        C5_TPFRETE: ''
+      };
     }
   
     const customer = customers[0];
   
     return {
-      ...this.salesRequestValue,
       customerAdress: customer['adress'],
       paymentCondition: customer['paymentCondition'],
       paymentConditionName: customer['paymentConditionName'],
@@ -155,33 +165,14 @@ export class SalesRequestHeaderModalComponent {
       carrier: customer['carrier'],
       C5_TPFRETE: customer['C5_TPFRETE']
     };
-  }
-  
-
-  public onChangeStep(event: any): void {
-    const labelMap: Record<string, Step> = {
-      'Cabeçalho': Step.Header,
-      'Itens': Step.Items,
-      'Resumo': Step.Summary
-    };
-    this.currentStep = labelMap[event.label] ?? Step.Header;
-  }
-
-  public canActiveNextStep(): boolean {
-    if (this.currentStep === Step.Header && this.headerForm?.form?.invalid) {
-      this.poNotification.error('Preencha os campos obrigatórios!');
-      return false;
-    }
-
-    if (this.currentStep === Step.Items && this.tableItems.length === 0) {
-      this.poNotification.error('Adicione ao menos um item!');
-      return false;
-    }
-
-    return true;
-  }
+  }  
 
   public openItemModal(): void {
+    if(this.salesRequestValue['C5_CLIENTE'] == undefined || this.salesRequestValue['C5_CLIENTE'] == ""){
+      this.poNotification.error("Selecione um Cliente Para Adicionar um item");
+      return;
+    }
+
     const nextItem = this.getNextItemNumber();
     const customerId = this.salesRequestValue['C5_CLIENTE'];
     this.itemModal.openCreate(customerId, nextItem);

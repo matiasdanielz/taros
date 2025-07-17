@@ -195,12 +195,6 @@ constructor(
         label: 'Codigo Do Pedido em Ecommerce',
         gridColumns: 12
       },
-      {
-        property: 'CJ_MENNOTA',
-        label: 'Msg Nota',
-        gridColumns: 12,
-        rows: 3
-      },
     ];
   }
 

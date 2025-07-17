@@ -3,73 +3,42 @@
     [p-title]="isEditMode ? 'Editar Orçamento De Venda' : 'Criar Orçamento De Venda'"
     p-size="xl"
     class="salesBudgetModal">
-    <po-stepper #salesBudgetStepper (p-change-step)="onChangeStep($event)">
-        <po-step
-            p-label="Cabeçalho"
-            [p-can-active-next-step]="canActiveNextStep.bind(this)">
-            <po-dynamic-form
-                #salesBudgetHeaderForm
-                [p-fields]="salesBudgetFields"
-                [p-value]="salesBudgetValue"
-                [p-validate]="onChangeFields.bind(this)">
-            </po-dynamic-form>
-        </po-step>
+    <po-dynamic-form
+        #salesBudgetHeaderForm
+        [p-fields]="salesBudgetFields"
+        [p-value]="salesBudgetValue"
+        [p-validate]="onChangeFields.bind(this)">
+    </po-dynamic-form>
+    <po-divider class="po-md-12" p-label="Itens"></po-divider>
 
-        <po-step
-            p-label="Itens"
-            [p-can-active-next-step]="canActiveNextStep.bind(this)">
+    <po-button
+        class="po-md-4 po-mb-3"
+        p-label="Adicionar"
+        p-kind="primary"
+        (p-click)="openItemModal()">
+    </po-button>
 
-            <po-divider class="po-md-12" p-label="Itens"></po-divider>
+    <po-table
+        class="po-md-12"
+        p-container="true"
+        [p-hide-columns-manager]="true"
+        [p-sort]="true"
+        [p-striped]="true"
+        [p-hide-text-overflow]="true"
+        [p-actions]="tableActions"
+        [p-columns]="tableColumns"
+        [p-items]="tableItems">
+    </po-table>
 
-            <po-button
-                class="po-md-4 po-mb-3"
-                p-label="Adicionar"
-                p-kind="primary"
-                (p-click)="openItemModal()">
-            </po-button>
-
-            <po-table
-                class="po-md-12"
-                p-container="true"
-                [p-hide-columns-manager]="true"
-                [p-sort]="true"
-                [p-striped]="true"
-                [p-hide-text-overflow]="true"
-                [p-actions]="tableActions"
-                [p-columns]="tableColumns"
-                [p-items]="tableItems">
-            </po-table>
-
-            <!-- Aqui o po-dynamic-view para os totais, baseado no objeto totalizador -->
-            <po-dynamic-view
-                class="po-mt-4"
-                [p-fields]="salesBudgetItemFields"
-                [p-value]="salesBudgetItemsSum">
-            </po-dynamic-view>
-
-        </po-step>
-
-        <po-step p-label="Resumo">
-            <po-dynamic-view
-                [p-fields]="salesBudgetFields"
-                [p-value]="salesBudgetValue"></po-dynamic-view>
-            <po-divider p-label="Itens"></po-divider>
-            <po-table
-                class="po-md-12"
-                p-container="true"
-                [p-hide-columns-manager]="true"
-                [p-sort]="true"
-                [p-striped]="true"
-                [p-hide-text-overflow]="true"
-                [p-columns]="tableColumns"
-                [p-items]="tableItems">
-            </po-table>
-        </po-step>
-    </po-stepper>
+    <!-- Aqui o po-dynamic-view para os totais, baseado no objeto totalizador -->
+    <po-dynamic-view
+        class="po-mt-4"
+        [p-fields]="salesBudgetItemFields"
+        [p-value]="salesBudgetItemsSum">
+    </po-dynamic-view>
 
     <po-modal-footer [p-disabled-align]="false">
         <po-button
-            *ngIf="currentStep === 2"
             p-label="Salvar"
             p-kind="primary"
             (p-click)="onSubmit()"

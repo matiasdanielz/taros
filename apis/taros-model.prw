@@ -875,6 +875,20 @@ method GetSBudg(cSalesmanId, cFilter) class TarosModel
             SCJ.D_E_L_E_T_ = ''
         AND
             SA1.A1_VEND = %Exp:cSalesmanId%
+        AND
+            (
+                UPPER(CJ_FILIAL) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_NUM) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_EMISSAO) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_CLIENTE) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_LOJA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(A1_NOME) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_CONDPAG) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_TPFRETE) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_DESCONT) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_TABELA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(CJ_STATUS) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
         ORDER BY CJ_NUM DESC
     EndSql
 
@@ -981,6 +995,20 @@ method GetImpts(cSalesmanId, cFilter) class TarosModel
             Z00_VENDED = %EXP:cSalesmanId%
         AND
             Z00.D_E_L_E_T_ = ''
+        AND
+            (
+                UPPER(Z00_DATA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_STATUS) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_CNPJ) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_TABELA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(E4_DESCRI) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_PDESC) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_PEDCOM) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_EMISSA) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_ARQUIV) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_PV) LIKE UPPER('%' || %Exp:cFilter% || '%') OR
+                UPPER(Z00_OBS) LIKE UPPER('%' || %Exp:cFilter% || '%')
+            )
     EndSql
 
     While !SQL_IMPORTS->(EoF())

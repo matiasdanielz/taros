@@ -663,7 +663,7 @@ po-divider {
     DIVIDER
   \*------------------------------------*/
 
-  --color-divider-label-color: var(--color-neutral-dark-60);
+  --color-divider-label-color: var(--color-primary);
   --color-divider-line-color: var(--color);
   /*Deprecated v16.x.x utilizar --color*/
 

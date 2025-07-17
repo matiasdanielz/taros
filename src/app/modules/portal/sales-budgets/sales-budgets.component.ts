@@ -82,8 +82,8 @@ export class SalesBudgetsComponent {
     this.salesBudgetsItems = await this.salesBudgetsService.GetSalesBudgetsItems(this.filter);
   }
 
-  protected openSalesBudgetEditModal(selectedItem: any): void {
-    this.salesBudgetHeaderModal.open(selectedItem);
+  protected async openSalesBudgetEditModal(selectedItem: any): Promise<void> {
+    await this.salesBudgetHeaderModal.open(selectedItem);
   }
 
   protected openDeleteConfirmationModal(selectedItem: any): void {

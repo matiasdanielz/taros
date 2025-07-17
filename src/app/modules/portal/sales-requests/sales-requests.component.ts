@@ -77,7 +77,7 @@ export class SalesRequestsComponent {
 
     const response: any = await this.salesRequestsService.DeleteSalesRequest(requestJson);
 
-    if (response?.codigo === '201') {
+    if (response?.codigo === 201) {
       this.poNotification.success('Item deletado');
       this.deleteConfirmationModal.close();
     } else {

@@ -14,6 +14,8 @@ import {
 import { Import } from 'src/app/models/import/import';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { ImportsService } from 'src/app/services/imports/imports.service';
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-imports',
@@ -41,12 +43,17 @@ export class ImportsComponent implements OnInit {
     }
   ];
 
-  protected ediRestrictions: PoUploadFileRestrictions = { allowedExtensions: ['.txt'] };
+  protected ediRestrictions: PoUploadFileRestrictions = {
+    allowedExtensions: ['.txt']
+  };
 
-  protected tableHeight: number = window.innerHeight / 1.5;
+  protected page: number = 0;
+  protected pageSize: number = 12;
+  protected filter: string = '';
+  protected tableHeight = window.innerHeight / 1.5;
   protected importsColumns: PoTableColumn[] = [];
-  protected importsItems: Import[] = [];
   protected importsFields: PoDynamicViewField[] = [];
+  protected importsItems: Import[] = [];
   protected currentImportInView: Import = {};
 
   constructor(
@@ -63,11 +70,11 @@ export class ImportsComponent implements OnInit {
   }
 
   protected async loadItems(): Promise<void> {
-    this.importsItems = await this.importsService.GetImportsItems();
+    this.importsItems = await this.importsService.GetImportsItems(this.filter);
   }
 
-  protected openImportInfoModal(selectedItem: Import): void {
-    this.currentImportInView = selectedItem;
+  protected openImportInfoModal(importItem: Import): void {
+    this.currentImportInView = importItem;
     this.importInfoModal.open();
   }
 
@@ -75,18 +82,11 @@ export class ImportsComponent implements OnInit {
     const file = this.getUploadedFile(this.ediUploadComponent);
     if (!file) return;
 
-    const salesmanId = this.getSalesmanIdOrNotify();
-    if (!salesmanId) return;
+    const request = await this.getUploadRequest('EDI', file);
+    if (!request) return;
 
-    const base64 = await this.convertToBase64(file);
-    const requestJson = {
-      VENDEDOR: salesmanId,
-      TIPO: 'EDI',
-      ARQUIVO: file.name,
-      BASE64: base64
-    };
-
-    await this.submitImport(requestJson, this.ediModal);
+    await this.submitImport(request, this.ediModal);
+    await this.loadItems();
   }
 
   protected async onExcelUpload(): Promise<void> {
@@ -96,80 +96,102 @@ export class ImportsComponent implements OnInit {
     const salesmanId = this.getSalesmanIdOrNotify();
     if (!salesmanId) return;
 
-    const text = await this.readFileAsText(file);
-    const json = await this.importsService.parseCsvToGroupedJson(text);
+    const buffer = await file.arrayBuffer();
+    const excelJson = await this.importsService.parseXlsxToGroupedJson(buffer);
 
-    const requestJson = {
+    const request = {
       VENDEDOR: salesmanId,
       TIPO: 'EXCEL',
       ARQUIVO: file.name,
-      EXCEL: json
+      EXCEL: excelJson
     };
 
-    await this.submitImport(requestJson, this.excelModal, true);
+    await this.submitImport(request, this.excelModal);
+    await this.loadItems();
   }
 
   protected downloadExcelTemplate(): void {
-    const link = document.createElement('a');
-    link.href = './assets/files/template.xlsx';
-    link.download = 'template.xlsx';
-    link.click();
+    const sampleData = [{
+      CNPJ: '58279696000117',
+      PEDIDO_CLIENTE: '22',
+      TIPO_FRETE: 'C',
+      MENSAGEM_NOTA: 'MSG PARA NOTA',
+      ITEM_DO_PEDIDO: '1',
+      PRODUTO: '1110.100',
+      QUANTIDADE: 10
+    }];
+
+    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    const workbook = { Sheets: { 'Pedidos': worksheet }, SheetNames: ['Pedidos'] };
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+    FileSaver.saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'pedido.xlsx');
   }
 
-  // Utilitários reutilizáveis
+  // Utilitários auxiliares
 
-  private getUploadedFile(component: PoUploadComponent): File | undefined {
-    const uploadItem = component['currentFiles']?.[0];
-    return uploadItem?.rawFile;
+  private getUploadedFile(upload: PoUploadComponent): File | undefined {
+    return upload['currentFiles']?.[0]?.rawFile;
   }
 
   private getSalesmanIdOrNotify(): string | null {
-    const session = this.authService.getSession();
-    const salesmanId = session?.sessionInfo?.userId;
-
-    if (!salesmanId) {
+    const userId = this.authService.getSession()?.sessionInfo?.userId;
+    if (!userId) {
       this.poNotification.error('Sessão expirada ou inválida. Faça login novamente.');
       return null;
     }
-
-    return salesmanId;
+    return userId;
   }
 
-  private async submitImport(request: any, modalToClose: PoModalComponent, reload: boolean = false): Promise<void> {
+  private async getUploadRequest(tipo: 'EDI' | 'EXCEL', file: File): Promise<any | null> {
+    const salesmanId = this.getSalesmanIdOrNotify();
+    if (!salesmanId) return null;
+
+    if (tipo === 'EDI') {
+      const base64 = await this.convertToBase64(file);
+      return {
+        VENDEDOR: salesmanId,
+        TIPO: tipo,
+        ARQUIVO: file.name,
+        BASE64: base64
+      };
+    }
+
+    return null; // Excel tem lógica separada no método próprio
+  }
+
+  private async submitImport(request: any, modal: PoModalComponent): Promise<void> {
     try {
       const response = await this.importsService.PostImportItem(request);
-
-      if (response?.codigo === 201) {
-        modalToClose.close();
-        this.poNotification.success(response.mensagem);
-        if (reload) await this.loadItems();
-      } else {
-        this.poNotification.error(response?.mensagem || 'Erro ao processar a importação.');
-      }
-    } catch (err) {
+      response?.codigo === 201
+        ? (modal.close(), this.poNotification.success(response.mensagem))
+        : this.poNotification.error(response?.mensagem || 'Erro ao processar a importação.');
+    } catch (error) {
       this.poNotification.error('Erro inesperado ao enviar o arquivo.');
-      console.error(err);
+      console.error(error);
     }
   }
 
-  private readFileAsText(file: File): Promise<string> {
+  private async convertToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => resolve((reader.result as string).split(',')[1]);
       reader.onerror = reject;
-      reader.readAsText(file);
+      reader.readAsDataURL(file);
     });
   }
 
-  private convertToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const base64String = (reader.result as string).split(',')[1];
-        resolve(base64String);
-      };
-      reader.onerror = reject;
-    });
+  protected onSearch(filter: string): any {
+    this.page = -1;
+    this.importsItems = [];
+    this.filter = filter
+    this.loadItems()
+  }
+
+  protected onResetSearch(): any {
+    this.page = -1;
+    this.importsItems = [];
+    this.filter = ''
+    this.loadItems()
   }
 }
