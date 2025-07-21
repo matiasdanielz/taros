@@ -307,9 +307,25 @@ export class InvoicesService {
   public async getDanfe(requestJson: any): Promise<any>{
     const url = `http://200.229.234.214:8091/rest/valclei/danfe`;
 
-    const response: any = await this.http.get(url, environment.header).toPromise();
+    const response: any = await this.http.post(url, requestJson, environment.header).toPromise();
 
-    return response?.items ?? [];
+    return response;
+  }
+
+  public async getXML(requestJson: any): Promise<any>{
+    const url = `http://200.229.234.214:8091/rest/valclei/xml`;
+
+    const response: any = await this.http.post(url, requestJson, environment.header).toPromise();
+
+    return response;
+  }
+
+  public async getBoleto(requestJson: any): Promise<any>{
+    const url = `http://200.229.234.214:8091/rest/valclei/boleto`;
+
+    const response: any = await this.http.post(url, requestJson, environment.header).toPromise();
+
+    return response;
   }
 
 }

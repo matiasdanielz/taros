@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { PoButtonGroupItem, PoDynamicViewField, PoModalComponent, PoTableAction, PoTableColumn } from '@po-ui/ng-components';
 import { Invoice } from 'src/app/models/invoice/invoice';
+import { AuthService } from 'src/app/services/auth/auth.service';
 import { InvoicesService } from 'src/app/services/invoices/invoices.service';
 
 @Component({
@@ -16,15 +17,15 @@ export class InvoicesComponent {
   protected downloadButtons: PoButtonGroupItem[] = [
     {
       label: 'Danfe',
-      action: () => {}
+      action: () => this.downloadDanfe()
     },
     {
       label: 'XML',
-      action: () => {}
+      action: () => this.downloadXml()
     },
     {
       label: 'Boleto',
-      action: () => {}
+      action: () => this.downloadBoleto()
     },
   ];
 
@@ -39,7 +40,7 @@ export class InvoicesComponent {
     {
       label: 'Downloads',
       icon: 'po-icon-download',
-      action: () => this.downloadsModal.open()
+      action: this.openDownloadDanfeModal.bind(this)
     }
   ];
 
@@ -55,7 +56,7 @@ export class InvoicesComponent {
   protected filter: string = '';
 
   constructor(
-    private invoicesService: InvoicesService
+    private invoicesService: InvoicesService,
   ){
     this.invoicesColumns = invoicesService.GetInvoicesColumns();
     this.invoicesItemsColumns = invoicesService.GetInvoicesItemsColumns();
@@ -89,4 +90,87 @@ export class InvoicesComponent {
     this.filter = ''
     this.LoadInvoices()
   }
+
+  protected openDownloadDanfeModal(selectedItem: any){
+    this.currentInvoiceInView = selectedItem;
+    this.downloadsModal.open();
+  }
+
+  protected async downloadDanfe() {
+    const requestJson = {
+      NOTA: this.currentInvoiceInView['id'],
+      SERIE: this.currentInvoiceInView['serial']
+    };
+  
+    const response = await this.invoicesService.getDanfe(requestJson);
+  
+    if (response['codigo'] === 201 && response['base64']) {
+      this.downloadBase64File(
+        response['base64'],
+        'application/pdf',
+        `danfe_${this.currentInvoiceInView['id']}.pdf`
+      );
+    }
+  }
+
+  protected async downloadXml() {
+    const requestJson = {
+      NOTA: this.currentInvoiceInView['id'],
+      SERIE: this.currentInvoiceInView['serial']
+    };
+  
+    const response = await this.invoicesService.getXML(requestJson);
+  
+    if (response['codigo'] === 201 && response['base64']) {
+      this.downloadBase64File(
+        response['base64'],
+        'application/xml',
+        `xml_${this.currentInvoiceInView['id']}.xml`,
+        true  // Forçar download
+      );
+    }
+  }
+  
+  
+
+  protected async downloadBoleto() {
+    const requestJson = {
+      NOTA: this.currentInvoiceInView['id'],
+      SERIE: this.currentInvoiceInView['serial']
+    };
+  
+    const response = await this.invoicesService.getBoleto(requestJson);
+  
+    if (response['codigo'] === 201 && response['base64']) {
+      this.downloadBase64File(
+        response['base64'],
+        'application/pdf',
+        `boleto_${this.currentInvoiceInView['id']}.pdf`
+      );
+    }
+  }
+  
+
+  private downloadBase64File(base64Data: string, mimeType: string, fileName: string, forceDownload: boolean = false): void {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = Array.from(byteCharacters, char => char.charCodeAt(0));
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+  
+    const blobUrl = URL.createObjectURL(blob);
+  
+    if (forceDownload) {
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } else {
+      window.open(blobUrl, '_blank');
+    }
+  }
+  
 }
