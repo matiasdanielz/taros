@@ -60,12 +60,20 @@ export class SalesRequestsComponent {
   }
 
   protected async openEditModal(selectedItem: any) {
-    await this.salesRequestHeaderModal.open(selectedItem);
+    if(selectedItem['status'] == 'emAberto'){
+      await this.salesRequestHeaderModal.open(selectedItem);
+    }else{
+      this.poNotification.warning("Somente pedidos com o status diferente de 'Em Aberto' podem ser editados");
+    }
   }
 
   protected openDeleteConfirmationModal(selectedItem: any) {
-    this.selectedItemToDelete = selectedItem;
-    this.deleteConfirmationModal.open();
+    if(selectedItem['status'] == 'emAberto'){
+      this.selectedItemToDelete = selectedItem;
+      this.deleteConfirmationModal.open();
+    }else{
+      this.poNotification.warning("Somente pedidos com o status diferente de 'Em Aberto' podem ser editados");
+    }
   }
 
   protected async deleteItem() {

@@ -555,18 +555,17 @@ method GetIComm(cYearAndMonth) class TarosModel
             E3_BAIEMI AS BAIXA_EMISSAO,
             E3_PEDIDO AS PEDIDO,
             E3_VENCTO AS VENCIMENTO,
-            C5_NOTA AS NF,
             COUNT(*) OVER() AS TOTAL
         FROM
             %Table:SE3% SE3
         LEFT JOIN
-            %Table:SA1% SA1 ON A1_COD = E3_CODCLI
-        LEFT JOIN
-            %Table:SC5% SC5 ON C5_NUM = E3_PEDIDO AND C5_FILIAL = E3_FILIAL
+            %Table:SA1% SA1 ON A1_COD = E3_CODCLI AND SA1.D_E_L_E_T_ = ''
         WHERE 
            SE3.D_E_L_E_T_ = ''
         AND
             SUBSTRING(E3_EMISSAO, 1, 6) = %Exp:cYearAndMonth%
+        ORDER BY
+            E3_NUM
     EndSql
 
     oResponse['total'] := SQL_ITEMS_COMMISSIONS->TOTAL
@@ -597,7 +596,7 @@ method GetIComm(cYearAndMonth) class TarosModel
                                                     cvaltochar(year2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))) + "-" + ;
                                                     cvaltochar(Month2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))) + "-" + ;
                                                     cvaltochar(Day2Str(stod(SQL_ITEMS_COMMISSIONS->VENCIMENTO))))
-            oCommission[ 'invoice' ]          := ALLTRIM(SQL_ITEMS_COMMISSIONS->NF)
+            oCommission[ 'invoice' ]          := ALLTRIM(SQL_ITEMS_COMMISSIONS->ID)
 
         aadd(aCommissions, oCommission)
         oCommission := JsonObject():New()

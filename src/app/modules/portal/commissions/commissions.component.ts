@@ -50,7 +50,7 @@ export class CommissionsComponent implements OnInit{
   private setupChartData(): void {
     const last6Items = this.commissionsHeaderItems.slice(-6);
 
-    this.commissionsCategories = ["Março"];
+    this.commissionsCategories = last6Items.map(item => item.monthLabel);
     this.commissionsSeries = [
       {
         label: 'Vendas',

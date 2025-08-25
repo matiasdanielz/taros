@@ -30,9 +30,9 @@ export class MenubarService {
         icon: 'po-icon-finance',
         subItems: [
           {
-            label: 'Notas Fiscais',
-            icon: 'po-icon-document-filled',
-            link: 'Invoices'
+            label: 'Orçamentos de Venda',
+            icon: 'po-icon-cart',
+            link: 'SalesBudgets'
           },
           {
             label: 'Pedidos de Venda',
@@ -40,10 +40,10 @@ export class MenubarService {
             link: 'SalesRequests'
           },
           {
-            label: 'Orçamentos de Venda',
-            icon: 'po-icon-cart',
-            link: 'SalesBudgets'
-          }
+            label: 'Notas Fiscais',
+            icon: 'po-icon-document-filled',
+            link: 'Invoices'
+          },
         ]
       },
       {

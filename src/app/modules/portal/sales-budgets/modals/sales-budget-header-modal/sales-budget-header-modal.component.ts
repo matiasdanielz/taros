@@ -140,7 +140,7 @@ export class SalesBudgetHeaderModalComponent implements OnInit {
       C5_LOJACLI: '01',
       C5_LOJA: '01',
       C5_TPFRETE: this.salesBudgetValue['CJ_TPFRETE'],
-      C5_TABELA: this.salesBudgetValue['C5_TABELA'] ?? '999',
+      C5_TABELA: this.salesBudgetValue['priceTable'] ?? '999',
       C5_CONDPAG: this.salesBudgetValue['C5_CONDPAG'] ?? '002',
       C5_TIPO: 'N',
       ITENS: this.tableItems

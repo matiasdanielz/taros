@@ -27,7 +27,7 @@ export class ProductsService {
     const url: string = `${environment.apiDomain}/products`;
 
     return this.http
-      .get(`${url}?value=${value}`)
+      .get(`${url}?id=${value}`)
       .pipe(map((response: any) => response['items'][0]));
   }
 

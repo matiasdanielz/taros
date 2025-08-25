@@ -192,7 +192,7 @@ constructor(
       {
         divider: 'Outros',
         property: 'shopOrderId',
-        label: 'Codigo Do Pedido em Ecommerce',
+        label: 'Número do pedido do cliente',
         gridColumns: 12
       },
     ];

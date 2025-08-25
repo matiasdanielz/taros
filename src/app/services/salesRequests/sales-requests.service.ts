@@ -178,7 +178,7 @@ export class SalesRequestsService {
       {
         divider: 'Outros',
         property: 'C5_PEDECOM',
-        label: 'Codigo Do Pedido em Ecommerce',
+        label: 'Número do pedido do cliente',
         gridColumns: 12
       },
       {
@@ -210,12 +210,12 @@ export class SalesRequestsService {
           {
             value: 'encerrado',
             label: 'Encerrado',
-            color: 'color-07'
+            color: 'color-02'
           },
           {
             value: 'liberado',
             label: 'Liberado',
-            color: 'color-08'
+            color: 'color-04'
           },
           {
             value: 'bloqueadoPorRegra',

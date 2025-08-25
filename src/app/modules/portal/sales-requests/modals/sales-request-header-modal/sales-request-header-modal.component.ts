@@ -262,7 +262,7 @@ export class SalesRequestHeaderModalComponent {
     const headerData = {
       ...this.salesRequestValue,
       C5_LOJACLI: '01',
-      C5_TABELA: this.salesRequestValue['C5_TABELA'] ?? '999',
+      C5_TABELA: this.salesRequestValue['priceTable'] ?? '999',
       C5_TIPO: this.salesRequestValue['C5_TIPO'] ?? 'N',
       C5_TPFRETE: this.salesRequestValue['C5_TPFRETE'] ?? 'C',
       C5_CONDPAG: this.salesRequestValue['C5_CONDPAG'] ?? '002',
@@ -285,21 +285,23 @@ export class SalesRequestHeaderModalComponent {
       this.addTotalizerRow();
     }
   }
-
   private addTotalizerRow(): void {
     const sum = (field: string) => this.tableItems.reduce((acc, item) =>
       acc + (parseFloat(item[field]) || 0), 0);
   
+    const format = (value: number) => value.toFixed(2).replace('.', ',');
+  
     this.salesRequestItemsSum = {
-      C6_QTDVEN: sum('C6_QTDVEN'),
-      IT_PRCUNI: sum('IT_PRCUNI'),
-      IT_VALMERC: sum('IT_VALMERC'),
-      IT_VALICM: sum('IT_VALICM'),
-      IT_VALSOL: sum('IT_VALSOL'),
-      IT_VALIPI: sum('IT_VALIPI'),
-      IT_DIFAL: sum('IT_DIFAL')
+      C6_QTDVEN: format(sum('C6_QTDVEN')),
+      IT_PRCUNI: format(sum('IT_PRCUNI')),
+      IT_VALMERC: format(sum('IT_VALMERC')),
+      IT_VALICM: format(sum('IT_VALICM')),
+      IT_VALSOL: format(sum('IT_VALSOL')),
+      IT_VALIPI: format(sum('IT_VALIPI')),
+      IT_DIFAL: format(sum('IT_DIFAL'))
     };
   }
+  
   
 
   private getNextItemNumber(): string {
